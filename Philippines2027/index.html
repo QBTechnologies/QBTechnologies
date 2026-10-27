@@ -310,8 +310,7 @@ const toObj=r=>({dep:r[0],f1:r[1],a1:r[2],via:r[3],arr1:r[4],dep2:r[5],lay:r[6],
 let plan={};            // shared: {f1:{date,row}, h1:{id}, ...}
 let cur=0;              // per viewer
 let ui={day:{}, sort:{}, arr:0, wait:1439, by:{f2:1439,f3:1439}, shown:{}};
-try{const s=JSON.parse(localStorage.getItem('ph27-ui')||'{}');if(Number.isInteger(s.cur))cur=Math.min(5,Math.max(0,s.cur));}catch(e){}
-const remember=()=>{try{localStorage.setItem('ph27-ui',JSON.stringify({cur}));}catch(e){}};
+try{localStorage.removeItem('ph27-ui');}catch(e){} // the page always opens on step 1; drop the old remembered-step setting
 
 let dbRef=null, canWrite=false, writing=Promise.resolve();
 function setSave(s,t){const el=$('#save');el.dataset.s=s;$('#saveTxt').textContent=t;}
@@ -663,7 +662,7 @@ function render(){
   if(locked) lb.innerHTML=`<b>Plan submitted ${locked.at}.</b><span>To plan again, open this page in a new tab.</span>`;
   renderNav();renderWork();renderSum();}
 function go(i){if(i>5){document.getElementById('sum').scrollIntoView({behavior:'smooth',block:'start'});return;}
-  cur=Math.max(0,Math.min(5,i));remember();render();
+  cur=Math.max(0,Math.min(5,i));render();
   if(window.matchMedia('(max-width:760px)').matches) window.scrollTo({top:0,behavior:'smooth'});}
 
 /* ---------- events (delegated) ---------- */
