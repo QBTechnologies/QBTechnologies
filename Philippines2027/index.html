@@ -143,6 +143,8 @@ h1{font:700 clamp(22px,3.2vw,30px)/1.1 var(--f-display);letter-spacing:-.01em;ma
 .total .mono{font-size:15px;font-weight:600;display:block}
 .total small{display:block;font-size:11.5px;color:var(--ink-3)}
 .hotel .price{display:block}
+.hrow{display:grid;gap:4px}
+.maplink{justify-self:end;font-size:12.5px;font-weight:600;color:var(--accent);text-decoration:underline;text-underline-offset:2px;padding:0 4px}
 .pill{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--surface-2);color:var(--ink-2)}
 .opt.same{border-left:4px solid var(--same);padding-left:9px}
 .pill.same{background:var(--same-soft);color:var(--same);margin-left:6px;vertical-align:2px}
@@ -267,15 +269,23 @@ const STEPS=[
   {id:'h3',stop:2,kind:'hotel', title:'Choose your Cebu hotel'}
 ];
 /* Sample hotels — placeholders until the real list arrives */
+const AIRPORT={h1:{code:'IAO',lat:9.85889,lng:126.01389},h2:{code:'ENI',lat:11.20194,lng:119.41694}};
+const kmTo=(a,b)=>{const R=6371,r=Math.PI/180,dl=(b.lat-a.lat)*r,dg=(b.lng-a.lng)*r;const x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(x));};
+const mapsURL=h=>`https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lng}`;
 const HOTELS={
+  /* From Reggie's "Philippines 2027" Google My Maps export (names + pin locations) */
   h1:[
-    {id:'s1',name:'Sample beachfront resort',area:'General Luna · walk to Cloud 9',price:7500,note:'Pool, breakfast included'},
-    {id:'s2',name:'Sample boutique villas',area:'General Luna · inland, quiet',price:4800,note:'Private villa, scooter rental'},
-    {id:'s3',name:'Sample surf hostel',area:'General Luna · town centre',price:1600,note:'Private room, shared lounge'}],
+    {id:'isla-cabana',name:'Isla Cabana Resort',lat:9.7899365,lng:126.1632829,note:'“The best place to stay”'}],
   h2:[
-    {id:'e1',name:'Sample cliffside resort',area:'Corong Corong · sunset side',price:9200,note:'Sea view, island-hop desk'},
-    {id:'e2',name:'Sample beach cottages',area:'Marimegmeg (Las Cabanas)',price:5400,note:'Steps from the beach'},
-    {id:'e3',name:'Sample town guesthouse',area:'El Nido town',price:2200,note:'Near boat terminal'}],
+    {id:'funny-lion',name:'The Funny Lion - El Nido',lat:11.1829821,lng:119.3932366},
+    {id:'piece-lio',name:'Piece Lio, El Nido',lat:11.206496,lng:119.4173195},
+    {id:'lihim',name:'Lihim Resorts',lat:11.1921225,lng:119.3974226},
+    {id:'vellago',name:'Vellago Resort',lat:11.1743006,lng:119.3782025},
+    {id:'seda-lio',name:'Seda Lio',lat:11.2114257,lng:119.418312},
+    {id:'karuna',name:'Karuna El Nido Villas',lat:11.1651045,lng:119.4001664},
+    {id:'morgan',name:'Morgan Villas Boutique Hotel',lat:11.1861871,lng:119.3925705},
+    {id:'hannas',name:'Hanna’s Inn & Rooftop Lounge',lat:11.1796033,lng:119.3856478},
+    {id:'inigtan-lio',name:'Inigtan Lio | Bamboo Cottages and Villas',lat:11.19187,lng:119.4373075}],
   h3:[
     {id:'c1',name:'Sample island resort',area:'Mactan · near the airport',price:8000,note:'Beach club, airport shuttle'},
     {id:'c2',name:'Sample city hotel',area:'Cebu IT Park',price:4200,note:'Rooftop pool, restaurants nearby'},
@@ -320,7 +330,7 @@ function choose(stepId,val){
 }
 
 /* ---------- derived ---------- */
-const done=id=>!!plan[id];
+const done=id=>!!plan[id]&&(id[0]!=='h'||HOTELS[id].some(h=>h.id===plan[id].id));
 function stayDates(i){ // hotel step index (0..2) -> {in,out}
   const fin=plan[['f1','f2','f3'][i]], fout=plan[['f2','f3',null][i]];
   return {in:fin?fin.date:null,out:fout?fout.date:null};
@@ -422,16 +432,20 @@ function segBar(o,wait,maxT){
 }
 function renderHotel(s){
   const i=+s.id[1]-1, d=stayDates(i), pick=plan[s.id];
-  const n=d.in&&d.out?nights(d.in,d.out):null;
+  const n=d.in&&d.out?nights(d.in,d.out):null, fromMap=s.id!=='h3', ap=AIRPORT[s.id];
   return `
-  <div class="note"><b>Sample options.</b> These are placeholders so you can try the flow. Send your hotel list and they'll be replaced.</div>
+  <div class="note">${fromMap?`<b>From your “Philippines 2027” map.</b> ${HOTELS[s.id].length} place${HOTELS[s.id].length===1?'':'s'} pinned for ${STOPS[i].name}. Distances are straight-line from ${ap.code} airport.`
+    :`<b>Sample options.</b> Your map has no Cebu pins yet. Add some and these will be replaced.`}</div>
   <div class="meta"><span>${d.in?`Check in ${fmtDay(d.in)}`:'Check in: pick the flight first'}${d.out?` · check out ${fmtDay(d.out)} · ${n} night${n===1?'':'s'}`:(i===2?' · check-out not set yet':'')}</span></div>
   <div class="list" role="radiogroup" aria-label="Hotels">
-  ${HOTELS[s.id].map(h=>`<button class="opt hotel" type="button" role="radio" aria-checked="${pick&&pick.id===h.id}" data-hotel="${h.id}">
+  ${HOTELS[s.id].map(h=>`<div class="hrow">
+   <button class="opt hotel" type="button" role="radio" aria-checked="${!!(pick&&pick.id===h.id)}" data-hotel="${h.id}">
      <span class="radio"></span>
-     <span><span class="name">${h.name}</span><span class="area">${h.area}</span><span class="legs"><span>${h.note}</span></span></span>
-     <span class="total"><span class="price">${peso(h.price)}</span><small>per night${n?`<br>${peso(h.price*n)} for ${n}`:''}</small></span>
-   </button>`).join('')}
+     <span><span class="name">${h.name}</span>${h.area?`<span class="area">${h.area}</span>`:''}${h.note?`<span class="legs"><span>${h.note}</span></span>`:''}</span>
+     <span class="total">${h.lat?`<span class="price">${kmTo(h,ap).toFixed(1)} km</span><small>to ${ap.code}</small>`:`<span class="price">${peso(h.price)}</span><small>per night (sample)</small>`}</span>
+   </button>
+   ${h.lat?`<a class="maplink" href="${mapsURL(h)}" target="_blank" rel="noopener">Open in Google Maps ↗</a>`:''}
+  </div>`).join('')}
   </div>`;
 }
 /* ---------- Manila timeline (one control: arrival + latest departure) ---------- */
@@ -607,7 +621,7 @@ async function submitPlan(){
 function flightText(p){const o=toObj(p.row);
   return o.via?`${fmtDay(p.date)} · ${o.f1} (${o.a1}) ${o.dep}→${o.arr1} ${o.via}, then ${o.f2} (${o.a2}) ${o.dep2}→${o.arr} · ${dur(o.total)}`
              :`${fmtDay(p.date)} · ${o.f1} (${o.a1}) ${o.dep}→${o.arr} · nonstop ${dur(o.total)}`;}
-function hotelText(i){const s=STEPS[i*2+1],p=plan[s.id];if(!p)return null;const h=HOTELS[s.id].find(x=>x.id===p.id);const d=stayDates(i);
+function hotelText(i){const s=STEPS[i*2+1],p=plan[s.id];if(!p)return null;const h=HOTELS[s.id].find(x=>x.id===p.id);if(!h)return null;const d=stayDates(i);
   return {h,d};}
 function renderSum(){
   const cards=STOPS.map((st,i)=>{
