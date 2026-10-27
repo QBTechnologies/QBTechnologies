@@ -1,0 +1,711 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Philippines 2027 Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: three-pane planner (steps | workspace | booking summary); collapses to one column with a sticky action bar on phones */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --surface-2:#e9efed; --line:#d5dfdc;
+  --ink:#13211f; --ink-2:#4d605c; --ink-3:#7d8f8b;
+  --accent:#0b6e6a; --accent-ink:#ffffff; --accent-soft:#d6ecea;
+  --iao:#c8611e; --eni:#0f8fa3; --ceb:#3d6fb6;
+  --iao-soft:#f8e6d8; --eni-soft:#d7eff3; --ceb-soft:#dde7f5; --mnl:#8a4fd6; --same:#b26a00; --same-soft:#fbeccf;
+  --ok:#2e7d4f; --warn:#a15c00;
+  --shadow:0 1px 2px rgba(19,33,31,.06),0 6px 18px rgba(19,33,31,.06);
+  --f-display:'Bricolage Grotesque',ui-sans-serif,system-ui,sans-serif;
+  --f-body:'IBM Plex Sans',ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1716; --surface:#152220; --surface-2:#1c2c29; --line:#2a3d39;
+  --ink:#e6efed; --ink-2:#a7bab6; --ink-3:#748985;
+  --accent:#4fc1b8; --accent-ink:#06201e; --accent-soft:#173a37;
+  --iao:#f0a067; --eni:#5ccbdc; --ceb:#8db2ea;
+  --iao-soft:#3a2516; --eni-soft:#123238; --ceb-soft:#1b2a42; --mnl:#b98cf0; --same:#f2b84b; --same-soft:#3b2c10;
+  --ok:#6fcf97; --warn:#e8b45a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1716; --surface:#152220; --surface-2:#1c2c29; --line:#2a3d39;
+  --ink:#e6efed; --ink-2:#a7bab6; --ink-3:#748985;
+  --accent:#4fc1b8; --accent-ink:#06201e; --accent-soft:#173a37;
+  --iao:#f0a067; --eni:#5ccbdc; --ceb:#8db2ea;
+  --iao-soft:#3a2516; --eni-soft:#123238; --ceb-soft:#1b2a42; --mnl:#b98cf0; --same:#f2b84b; --same-soft:#3b2c10;
+  --ok:#6fcf97; --warn:#e8b45a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 28px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.wrap{max-width:1280px;margin:0 auto;display:grid;gap:16px}
+
+/* Header + progress */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+h1{font:700 clamp(22px,3.2vw,30px)/1.1 var(--f-display);letter-spacing:-.01em;margin:0;text-wrap:balance}
+.dates{color:var(--ink-2);font-size:13px;margin-top:4px}
+.save{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+.save i{width:8px;height:8px;border-radius:50%;background:var(--ink-3);display:inline-block}
+.save[data-s="saved"] i{background:var(--ok)}.save[data-s="saving"] i{background:var(--warn)}.save[data-s="local"] i{background:var(--warn)}
+.progress{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.bar span{height:8px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);transition:background .25s}
+.bar span.done{background:var(--accent);border-color:var(--accent)}
+.bar span.cur{box-shadow:0 0 0 2px var(--accent) inset}
+.plabel{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)}
+
+/* Three panes */
+.layout{display:grid;gap:16px;grid-template-columns:220px minmax(0,1fr) 300px;align-items:start}
+.pane{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);min-width:0}
+
+/* Step nav */
+.steps{padding:10px;position:sticky;top:12px}
+.stop{padding:6px 4px 10px}
+.stop + .stop{border-top:1px solid var(--line)}
+.stop h2{font:700 15px/1.2 var(--f-display);margin:8px 8px 6px;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.step{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--ink-2)}
+.step:hover{background:var(--surface-2);color:var(--ink)}
+.step[aria-current="step"]{background:var(--accent-soft);color:var(--ink);font-weight:600}
+.tick{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;flex:none;font-size:12px;line-height:1}
+.step.done .tick{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.step small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.chips{display:none}
+
+/* Workspace */
+.work{padding:18px 18px 20px;display:grid;gap:14px}
+.work-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.work h3{font:700 22px/1.15 var(--f-display);margin:2px 0 0;text-wrap:balance}
+.route{font-size:13px;color:var(--ink-2)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;color:var(--ink-2)}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab b{font-weight:600}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.ctl{background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.ctl label{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2);gap:8px}
+.ctl output{font:600 13px var(--f-mono);color:var(--ink)}
+.ctl input[type=range]{width:100%;accent-color:var(--accent);margin:6px 0 0}
+.ctl select{width:100%;margin-top:6px;font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.meta{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.list{display:grid;gap:8px}
+.fbody{display:grid;gap:14px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:18px;height:8px;border-radius:3px;display:inline-block}
+.opt .radio{grid-column:1;grid-row:1}
+.opt .total{grid-column:3;grid-row:1}
+.segbar{grid-column:2 / -1;grid-row:2;display:grid;gap:4px;margin-top:4px;min-width:0}
+.seg-track{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--surface-2)}
+.seg{height:100%;flex:none}
+.seg + .seg{box-shadow:inset 2px 0 0 var(--surface)}
+.fly{background:var(--accent)}
+.lay{background:repeating-linear-gradient(135deg,var(--accent) 0 2px,var(--accent-soft) 2px 6px)}
+.wait{background:var(--mnl)}
+.seg-txt{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tl{grid-column:1 / -1;padding-bottom:6px}
+.tl-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:2px 12px;font-size:12px;color:var(--ink-2)}
+.tl-head b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+.tl-track{position:relative;height:62px;margin:4px 14px 0;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
+.tl-rail{position:absolute;left:0;right:0;top:38px;height:14px;border-radius:7px;background:var(--surface);border:1px solid var(--line)}
+.tl-band{position:absolute;top:38px;height:14px;border-radius:7px;background:var(--accent-soft);border:1.5px solid var(--accent);cursor:grab}
+.tl-band.drag,.tl-h.drag{cursor:grabbing}
+.tl-track.view{cursor:default;height:44px}.tl-track.view .tl-rail{top:20px}.tl-track.view .tl-dot{top:24px}
+.tl-dot{position:absolute;top:42px;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;background:var(--ink-3);opacity:.4;pointer-events:none}
+.tl-dot.in{background:var(--accent);opacity:1}
+.tl-h{position:absolute;top:8px;width:32px;height:32px;margin-left:-16px;padding:0;border:0;background:none;cursor:grab;touch-action:none;z-index:2}
+.tl-h::before{content:"";position:absolute;left:50%;bottom:2px;width:18px;height:15px;margin-left:-9px;background:var(--accent);clip-path:polygon(0 0,100% 0,50% 100%)}
+.tl-h:focus-visible{outline:2px solid var(--accent);outline-offset:0}
+.tl-lbl{position:absolute;bottom:20px;font:600 12px/1 var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink);pointer-events:none}
+.tl-lbl{left:50%;transform:translateX(-50%)}.tl-lbl.edgeL{left:4px;transform:none}.tl-lbl.edgeR{left:auto;right:4px;transform:none}.tl-lbl.up{bottom:36px}
+.tl-track{height:76px}.tl-rail,.tl-band{top:52px}.tl-dot{top:56px}.tl-h{top:22px}
+.tl-ticks{position:relative;height:14px;margin:2px 14px 0;font:11px/1 var(--f-mono);color:var(--ink-3)}
+.tl-ticks span{position:absolute;transform:translateX(-50%)}
+@media (max-width:760px){.tl-h{width:40px;margin-left:-20px}.tl-track{margin-inline:18px}.tl-ticks{margin-inline:18px}.tl-ticks span:nth-child(even){display:none}}
+.opt{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:4px 12px;align-items:start;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover{border-color:var(--ink-3)}
+.opt[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent) inset}
+.radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--ink-3);margin-top:3px;display:grid;place-items:center}
+.opt[aria-checked="true"] .radio{border-color:var(--accent)}
+.opt[aria-checked="true"] .radio::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.times{font:600 17px/1.2 var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.times .arr{color:var(--ink-3);font-weight:500;margin:0 4px}
+.legs{font-size:12.5px;color:var(--ink-2);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.legs .via{font-weight:600}
+.total{text-align:right}
+.total .mono{font-size:15px;font-weight:600;display:block}
+.total small{display:block;font-size:11.5px;color:var(--ink-3)}
+.hotel .price{display:block}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--surface-2);color:var(--ink-2)}
+.opt.same{border-left:4px solid var(--same);padding-left:9px}
+.pill.same{background:var(--same-soft);color:var(--same);margin-left:6px;vertical-align:2px}
+.pill.best{background:var(--accent);color:var(--accent-ink)}
+.more{justify-self:center;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 16px;cursor:pointer;font-size:13px}
+.empty{padding:22px;text-align:center;color:var(--ink-2);background:var(--surface-2);border-radius:10px;font-size:14px}
+.note{font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.note b{color:var(--ink)}
+.hotel .name{display:block;font:600 16px/1.25 var(--f-body)}
+.hotel .area{display:block;font-size:12.5px;color:var(--ink-2);margin-top:2px}
+.hotel .price{font:600 15px var(--f-mono)}
+.nav{display:flex;justify-content:space-between;gap:10px;padding-top:4px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* Summary */
+.sum{padding:14px;display:grid;gap:12px;position:sticky;top:12px}
+.sum-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sum-head h2{font:700 17px var(--f-display);margin:0}
+.copy{font-size:12px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:5px 9px;cursor:pointer}
+.sum .cards{display:grid;gap:10px}
+.lockbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;background:var(--accent);color:var(--accent-ink);border-radius:var(--r);padding:12px 16px;font-size:14px}
+.lockbar b{font-weight:700}
+body.locked .opt{cursor:default}
+body.locked .opt:hover{border-color:var(--line)}
+body.locked .opt[aria-checked="false"]{opacity:.5}
+body.locked .tl-track{pointer-events:none;opacity:.55}
+.submit{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.submit h3{font:700 15px var(--f-display);margin:0}
+.submit label{display:grid;gap:3px;font-size:12px;color:var(--ink-2)}
+.submit input{font:inherit;font-size:14px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);width:100%}
+.submit .btn{width:100%;text-align:center;text-decoration:none;display:block}
+.submit .hint{font-size:12px;color:var(--ink-3);min-height:1.2em}
+.submit .hint.ok{color:var(--ok);font-weight:600}
+.submit .hint.err{color:var(--warn);font-weight:600}
+.card{border-radius:10px;padding:10px 12px;border-left:4px solid var(--c);background:var(--soft)}
+.card h3{font:700 15px var(--f-display);margin:0 0 6px;display:flex;justify-content:space-between;align-items:center}
+.row{display:grid;gap:2px;padding:6px 0}
+.row + .row{border-top:1px dashed var(--line)}
+.row .lbl{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.row .val{font-size:13px}
+.row .val .mono{font-size:12.5px}
+.row .todo{font-size:13px;color:var(--ink-3)}
+.row .edit{justify-self:start;font-size:12.5px;font-weight:600;color:var(--accent);cursor:pointer;background:none;border:0;padding:2px 0;text-decoration:underline;text-underline-offset:2px}
+details.sum-m{display:none}
+
+/* Mobile action bar */
+.actionbar{display:none}
+
+@media (max-width:1080px){
+  .layout{grid-template-columns:200px minmax(0,1fr)}
+  .sumwrap{grid-column:1 / -1}
+  .sum{position:static}
+  .sum .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+}
+@media (max-width:760px){
+  body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .steps{display:none}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 11px;font-size:13px;cursor:pointer;white-space:nowrap}
+  .chip[aria-current="step"]{border-color:var(--accent);background:var(--accent-soft);font-weight:600}
+  .chip .tick{width:16px;height:16px;font-size:10px}
+  .chip.done .tick{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .work{padding:14px}
+  .work .nav{display:none}
+  .opt{padding:11px;gap:4px 10px}
+  .times{font-size:16px}
+  .actionbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;gap:10px;align-items:center;background:var(--surface);border-top:1px solid var(--line);
+    padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+  .actionbar .btn{flex:1}
+  .actionbar .btn.back{flex:0 0 auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="lockbar" id="lockbar" role="status" hidden></div>
+  <div class="top">
+    <div>
+      <h1>Philippines 2027</h1>
+      <div class="dates">Siargao, El Nido and Cebu · Jun 5–18, 2027</div>
+    </div>
+    <span class="save" id="save" data-s="loading"><i></i><span id="saveTxt">Loading saved plan…</span></span>
+  </div>
+
+  <div class="progress" aria-label="Trip progress">
+    <div class="bar" id="bar"></div>
+    <div class="plabel"><span id="pnow"></span><span id="pcount"></span></div>
+  </div>
+
+  <div class="chips" id="chips" role="tablist" aria-label="Steps"></div>
+
+  <div class="layout">
+    <nav class="pane steps" id="steps" aria-label="Steps"></nav>
+    <main class="pane work" id="work" aria-live="polite"></main>
+    <div class="sumwrap"><aside class="pane sum" id="sum" aria-label="Booking summary"></aside></div>
+  </div>
+</div>
+
+<div class="actionbar" id="actionbar">
+  <button class="btn back" id="mBack" type="button">Back</button>
+  <button class="btn primary" id="mNext" type="button">Continue</button>
+</div>
+
+<script>
+const DATA={"f1":{"2027-06-05":[["03:40","5J563","Cebu Pacific","CEB","05:20","06:20",60,"PR2374","PAL","07:10",210],["08:40","PR2849","PAL","CEB","10:05","11:05",60,"DG6855","Cebgo","12:15",215],["03:20","Z2759","Philippines AirAsia","CEB","04:45","06:00",75,"2R857","Sunlight Air","07:00",220],["02:25","PR2841","PAL","CEB","03:45","05:00",75,"DG6851","Cebgo","06:10",225],["08:30","5J551","Cebu Pacific","CEB","10:05","11:05",60,"DG6855","Cebgo","12:15",225],["03:20","Z2759","Philippines AirAsia","CEB","04:45","06:20",95,"PR2374","PAL","07:10",230],["06:05","5J587","Cebu Pacific","CEB","07:40","08:50",70,"DG6857","Cebgo","10:00",235],["10:10","5J585","Cebu Pacific","CEB","11:40","13:10",90,"PR2351","PAL","14:05",235],["10:45","5J565","Cebu Pacific","CEB","12:20","13:30",70,"DG6853","Cebgo","14:40",235],["05:55","Z2763","Philippines AirAsia","CEB","07:20","08:50",90,"DG6857","Cebgo","10:00",245],["11:50","PR2853","PAL","CEB","13:30","14:50",80,"DG6859","Cebgo","16:00",250],["05:45","PR1851","PAL","CEB","07:15","08:50",95,"DG6857","Cebgo","10:00",255],["12:25","5J557","Cebu Pacific","CEB","14:00","15:50",110,"PR2382","PAL","16:45",260],["10:10","5J585","Cebu Pacific","CEB","11:40","13:30",110,"DG6853","Cebgo","14:40",270],["02:25","PR2841","PAL","CEB","03:45","06:00",135,"2R857","Sunlight Air","07:00",275],["06:40","PR2845","PAL","CEB","08:10","10:20",130,"PR2355","PAL","11:15",275],["08:25","5J963","Cebu Pacific","DVO","10:30","11:55",85,"DG6876","Cebgo","13:05",280],["02:25","PR2841","PAL","CEB","03:45","06:20",155,"PR2374","PAL","07:10",285],["05:15","5J555","Cebu Pacific","CEB","06:50","08:50",120,"DG6857","Cebgo","10:00",285],["08:20","PR2813","PAL","DVO","10:10","11:55",105,"DG6876","Cebgo","13:05",285],["04:20","5J965","Cebu Pacific","DVO","06:20","08:00",100,"DG6872","Cebgo","09:10",290],["06:40","PR2845","PAL","CEB","08:10","10:20",130,"DG6861","Cebgo","11:30",290],["11:50","PR2853","PAL","CEB","13:30","15:50",140,"PR2382","PAL","16:45",295],["04:50","5J561","Cebu Pacific","CEB","06:25","08:50",145,"DG6857","Cebgo","10:00",310],["04:50","PR2835","PAL","CEB","06:05","08:50",165,"DG6857","Cebgo","10:00",310],["06:05","5J587","Cebu Pacific","CEB","07:40","10:20",160,"PR2355","PAL","11:15",310],["10:45","5J565","Cebu Pacific","CEB","12:20","14:50",150,"DG6859","Cebgo","16:00",315],["04:40","5J2507","Cebu Pacific","CEB","06:15","08:50",155,"DG6857","Cebgo","10:00",320],["05:55","Z2763","Philippines AirAsia","CEB","07:20","10:20",180,"PR2355","PAL","11:15",320],["06:05","5J587","Cebu Pacific","CEB","07:40","10:20",160,"DG6861","Cebgo","11:30",325],["08:40","PR2849","PAL","CEB","10:05","13:10",185,"PR2351","PAL","14:05",325],["05:45","PR1851","PAL","CEB","07:15","10:20",185,"PR2355","PAL","11:15",330],["05:55","Z2763","Philippines AirAsia","CEB","07:20","10:20",180,"DG6861","Cebgo","11:30",335],["06:40","PR2845","PAL","CEB","08:10","11:05",175,"DG6855","Cebgo","12:15",335],["08:30","5J551","Cebu Pacific","CEB","10:05","13:10",185,"PR2351","PAL","14:05",335],["05:45","PR1851","PAL","CEB","07:15","10:20",185,"DG6861","Cebgo","11:30",345],["03:20","PR2809","PAL","DVO","05:20","08:00",160,"DG6872","Cebgo","09:10",350],["10:10","5J585","Cebu Pacific","CEB","11:40","14:50",190,"DG6859","Cebgo","16:00",350],["05:15","5J555","Cebu Pacific","CEB","06:50","10:20",210,"PR2355","PAL","11:15",360],["08:40","PR2849","PAL","CEB","10:05","13:30",205,"DG6853","Cebgo","14:40",360],["10:45","5J565","Cebu Pacific","CEB","12:20","15:50",210,"PR2382","PAL","16:45",360],["07:00","5J3961","Cebu Pacific","DVO","09:05","11:55",170,"DG6876","Cebgo","13:05",365],["06:05","5J587","Cebu Pacific","CEB","07:40","11:05",205,"DG6855","Cebgo","12:15",370],["08:30","5J551","Cebu Pacific","CEB","10:05","13:30",205,"DG6853","Cebgo","14:40",370],["05:15","5J555","Cebu Pacific","CEB","06:50","10:20",210,"DG6861","Cebgo","11:30",375],["03:40","5J563","Cebu Pacific","CEB","05:20","08:50",210,"DG6857","Cebgo","10:00",380],["05:55","Z2763","Philippines AirAsia","CEB","07:20","11:05",225,"DG6855","Cebgo","12:15",380],["04:50","5J561","Cebu Pacific","CEB","06:25","10:20",235,"PR2355","PAL","11:15",385],["04:50","PR2835","PAL","CEB","06:05","10:20",255,"PR2355","PAL","11:15",385],["05:45","PR1851","PAL","CEB","07:15","11:05",230,"DG6855","Cebgo","12:15",390],["06:35","PR2811","PAL","DVO","08:35","11:55",200,"DG6876","Cebgo","13:05",390],["04:40","5J2507","Cebu Pacific","CEB","06:15","10:20",245,"PR2355","PAL","11:15",395],["10:10","5J585","Cebu Pacific","CEB","11:40","15:50",250,"PR2382","PAL","16:45",395],["02:30","PR2803","PAL","DVO","04:15","08:00",225,"DG6872","Cebgo","09:10",400],["03:20","Z2759","Philippines AirAsia","CEB","04:45","08:50",245,"DG6857","Cebgo","10:00",400],["04:50","5J561","Cebu Pacific","CEB","06:25","10:20",235,"DG6861","Cebgo","11:30",400],["04:50","PR2835","PAL","CEB","06:05","10:20",255,"DG6861","Cebgo","11:30",400],["04:40","5J2507","Cebu Pacific","CEB","06:15","10:20",245,"DG6861","Cebgo","11:30",410],["05:15","5J555","Cebu Pacific","CEB","06:50","11:05",255,"DG6855","Cebgo","12:15",420],["08:40","PR2849","PAL","CEB","10:05","14:50",285,"DG6859","Cebgo","16:00",440],["04:50","5J561","Cebu Pacific","CEB","06:25","11:05",280,"DG6855","Cebgo","12:15",445],["04:50","PR2835","PAL","CEB","06:05","11:05",300,"DG6855","Cebgo","12:15",445],["06:40","PR2845","PAL","CEB","08:10","13:10",300,"PR2351","PAL","14:05",445],["08:30","5J551","Cebu Pacific","CEB","10:05","14:50",285,"DG6859","Cebgo","16:00",450],["02:25","PR2841","PAL","CEB","03:45","08:50",305,"DG6857","Cebgo","10:00",455],["03:40","5J563","Cebu Pacific","CEB","05:20","10:20",300,"PR2355","PAL","11:15",455],["04:40","5J2507","Cebu Pacific","CEB","06:15","11:05",290,"DG6855","Cebgo","12:15",455],["05:30","5J961","Cebu Pacific","DVO","07:35","11:55",260,"DG6876","Cebgo","13:05",455],["03:40","5J563","Cebu Pacific","CEB","05:20","10:20",300,"DG6861","Cebgo","11:30",470],["03:20","Z2759","Philippines AirAsia","CEB","04:45","10:20",335,"PR2355","PAL","11:15",475],["06:05","5J587","Cebu Pacific","CEB","07:40","13:10",330,"PR2351","PAL","14:05",480],["06:40","PR2845","PAL","CEB","08:10","13:30",320,"DG6853","Cebgo","14:40",480],["08:40","PR2849","PAL","CEB","10:05","15:50",345,"PR2382","PAL","16:45",485],["03:20","Z2759","Philippines AirAsia","CEB","04:45","10:20",335,"DG6861","Cebgo","11:30",490],["05:55","Z2763","Philippines AirAsia","CEB","07:20","13:10",350,"PR2351","PAL","14:05",490],["08:30","5J551","Cebu Pacific","CEB","10:05","15:50",345,"PR2382","PAL","16:45",495],["05:45","PR1851","PAL","CEB","07:15","13:10",355,"PR2351","PAL","14:05",500],["03:40","5J563","Cebu Pacific","CEB","05:20","11:05",345,"DG6855","Cebgo","12:15",515],["06:05","5J587","Cebu Pacific","CEB","07:40","13:30",350,"DG6853","Cebgo","14:40",515],["04:20","5J965","Cebu Pacific","DVO","06:20","11:55",335,"DG6876","Cebgo","13:05",525],["05:55","Z2763","Philippines AirAsia","CEB","07:20","13:30",370,"DG6853","Cebgo","14:40",525],["02:25","PR2841","PAL","CEB","03:45","10:20",395,"PR2355","PAL","11:15",530],["05:15","5J555","Cebu Pacific","CEB","06:50","13:10",380,"PR2351","PAL","14:05",530],["03:20","Z2759","Philippines AirAsia","CEB","04:45","11:05",380,"DG6855","Cebgo","12:15",535],["05:45","PR1851","PAL","CEB","07:15","13:30",375,"DG6853","Cebgo","14:40",535],["02:25","PR2841","PAL","CEB","03:45","10:20",395,"DG6861","Cebgo","11:30",545],["04:50","5J561","Cebu Pacific","CEB","06:25","13:10",405,"PR2351","PAL","14:05",555],["04:50","PR2835","PAL","CEB","06:05","13:10",425,"PR2351","PAL","14:05",555],["06:40","PR2845","PAL","CEB","08:10","14:50",400,"DG6859","Cebgo","16:00",560],["04:40","5J2507","Cebu Pacific","CEB","06:15","13:10",415,"PR2351","PAL","14:05",565],["05:15","5J555","Cebu Pacific","CEB","06:50","13:30",400,"DG6853","Cebgo","14:40",565],["03:20","PR2809","PAL","DVO","05:20","11:55",395,"DG6876","Cebgo","13:05",585],["02:25","PR2841","PAL","CEB","03:45","11:05",440,"DG6855","Cebgo","12:15",590],["04:50","5J561","Cebu Pacific","CEB","06:25","13:30",425,"DG6853","Cebgo","14:40",590],["04:50","PR2835","PAL","CEB","06:05","13:30",445,"DG6853","Cebgo","14:40",590],["06:05","5J587","Cebu Pacific","CEB","07:40","14:50",430,"DG6859","Cebgo","16:00",595],["04:40","5J2507","Cebu Pacific","CEB","06:15","13:30",435,"DG6853","Cebgo","14:40",600],["05:55","Z2763","Philippines AirAsia","CEB","07:20","14:50",450,"DG6859","Cebgo","16:00",605],["06:40","PR2845","PAL","CEB","08:10","15:50",460,"PR2382","PAL","16:45",605],["05:45","PR1851","PAL","CEB","07:15","14:50",455,"DG6859","Cebgo","16:00",615],["03:40","5J563","Cebu Pacific","CEB","05:20","13:10",470,"PR2351","PAL","14:05",625],["02:30","PR2803","PAL","DVO","04:15","11:55",460,"DG6876","Cebgo","13:05",635],["06:05","5J587","Cebu Pacific","CEB","07:40","15:50",490,"PR2382","PAL","16:45",640],["03:20","Z2759","Philippines AirAsia","CEB","04:45","13:10",505,"PR2351","PAL","14:05",645],["05:15","5J555","Cebu Pacific","CEB","06:50","14:50",480,"DG6859","Cebgo","16:00",645],["05:55","Z2763","Philippines AirAsia","CEB","07:20","15:50",510,"PR2382","PAL","16:45",650],["03:40","5J563","Cebu Pacific","CEB","05:20","13:30",490,"DG6853","Cebgo","14:40",660],["05:45","PR1851","PAL","CEB","07:15","15:50",515,"PR2382","PAL","16:45",660],["04:50","5J561","Cebu Pacific","CEB","06:25","14:50",505,"DG6859","Cebgo","16:00",670],["04:50","PR2835","PAL","CEB","06:05","14:50",525,"DG6859","Cebgo","16:00",670],["03:20","Z2759","Philippines AirAsia","CEB","04:45","13:30",525,"DG6853","Cebgo","14:40",680],["04:40","5J2507","Cebu Pacific","CEB","06:15","14:50",515,"DG6859","Cebgo","16:00",680],["05:15","5J555","Cebu Pacific","CEB","06:50","15:50",540,"PR2382","PAL","16:45",690],["02:25","PR2841","PAL","CEB","03:45","13:10",565,"PR2351","PAL","14:05",700],["04:50","5J561","Cebu Pacific","CEB","06:25","15:50",565,"PR2382","PAL","16:45",715],["04:50","PR2835","PAL","CEB","06:05","15:50",585,"PR2382","PAL","16:45",715],["04:40","5J2507","Cebu Pacific","CEB","06:15","15:50",575,"PR2382","PAL","16:45",725],["02:25","PR2841","PAL","CEB","03:45","13:30",585,"DG6853","Cebgo","14:40",735],["03:40","5J563","Cebu Pacific","CEB","05:20","14:50",570,"DG6859","Cebgo","16:00",740],["03:20","Z2759","Philippines AirAsia","CEB","04:45","14:50",605,"DG6859","Cebgo","16:00",760],["03:40","5J563","Cebu Pacific","CEB","05:20","15:50",630,"PR2382","PAL","16:45",785],["03:20","Z2759","Philippines AirAsia","CEB","04:45","15:50",665,"PR2382","PAL","16:45",805],["02:25","PR2841","PAL","CEB","03:45","14:50",665,"DG6859","Cebgo","16:00",815],["02:25","PR2841","PAL","CEB","03:45","15:50",725,"PR2382","PAL","16:45",860]],"2027-06-06":[["03:40","5J563","Cebu Pacific","CEB","05:20","06:20",60,"PR2374","PAL","07:10",210],["08:40","PR2849","PAL","CEB","10:05","11:05",60,"DG6855","Cebgo","12:15",215],["02:25","PR2841","PAL","CEB","03:45","05:00",75,"DG6851","Cebgo","06:10",225],["08:30","5J551","Cebu Pacific","CEB","10:05","11:05",60,"DG6855","Cebgo","12:15",225],["06:05","5J587","Cebu Pacific","CEB","07:40","08:50",70,"DG6857","Cebgo","10:00",235],["10:10","5J585","Cebu Pacific","CEB","11:40","13:10",90,"PR2351","PAL","14:05",235],["10:45","5J565","Cebu Pacific","CEB","12:20","13:30",70,"DG6853","Cebgo","14:40",235],["05:55","Z2763","Philippines AirAsia","CEB","07:20","08:50",90,"DG6857","Cebgo","10:00",245],["11:50","PR2853","PAL","CEB","13:30","14:50",80,"DG6859","Cebgo","16:00",250],["07:00","PR2855","PAL","CEB","08:25","10:20",115,"PR2355","PAL","11:15",255],["12:25","5J557","Cebu Pacific","CEB","14:00","15:50",110,"PR2382","PAL","16:45",260],["07:00","PR2855","PAL","CEB","08:25","10:20",115,"DG6861","Cebgo","11:30",270],["10:10","5J585","Cebu Pacific","CEB","11:40","13:30",110,"DG6853","Cebgo","14:40",270],["02:25","PR2841","PAL","CEB","03:45","06:00",135,"2R857","Sunlight Air","07:00",275],["06:40","PR2845","PAL","CEB","08:10","10:20",130,"PR2355","PAL","11:15",275],["02:25","PR2841","PAL","CEB","03:45","06:20",155,"PR2374","PAL","07:10",285],["04:20","5J965","Cebu Pacific","DVO","06:20","08:00",100,"DG6872","Cebgo","09:10",290],["06:40","PR2845","PAL","CEB","08:10","10:20",130,"DG6861","Cebgo","11:30",290],["11:50","PR2853","PAL","CEB","13:30","15:50",140,"PR2382","PAL","16:45",295],["04:50","5J561","Cebu Pacific","CEB","06:25","08:50",145,"DG6857","Cebgo","10:00",310],["04:50","PR2835","PAL","CEB","06:05","08:50",165,"DG6857","Cebgo","10:00",310],["06:05","5J587","Cebu Pacific","CEB","07:40","10:20",160,"PR2355","PAL","11:15",310],["07:00","PR2855","PAL","CEB","08:25","11:05",160,"DG6855","Cebgo","12:15",315],["10:45","5J565","Cebu Pacific","CEB","12:20","14:50",150,"DG6859","Cebgo","16:00",315],["05:55","Z2763","Philippines AirAsia","CEB","07:20","10:20",180,"PR2355","PAL","11:15",320],["06:05","5J587","Cebu Pacific","CEB","07:40","10:20",160,"DG6861","Cebgo","11:30",325],["08:40","PR2849","PAL","CEB","10:05","13:10",185,"PR2351","PAL","14:05",325],["05:55","Z2763","Philippines AirAsia","CEB","07:20","10:20",180,"DG6861","Cebgo","11:30",335],["06:40","PR2845","PAL","CEB","08:10","11:05",175,"DG6855","Cebgo","12:15",335],["08:30","5J551","Cebu Pacific","CEB","10:05","13:10",185,"PR2351","PAL","14:05",335],["03:20","PR2809","PAL","DVO","05:20","08:00",160,"DG6872","Cebgo","09:10",350],["10:10","5J585","Cebu Pacific","CEB","11:40","14:50",190,"DG6859","Cebgo","16:00",350],["08:40","PR2849","PAL","CEB","10:05","13:30",205,"DG6853","Cebgo","14:40",360],["10:45","5J565","Cebu Pacific","CEB","12:20","15:50",210,"PR2382","PAL","16:45",360],["06:05","5J587","Cebu Pacific","CEB","07:40","11:05",205,"DG6855","Cebgo","12:15",370],["08:30","5J551","Cebu Pacific","CEB","10:05","13:30",205,"DG6853","Cebgo","14:40",370],["03:40","5J563","Cebu Pacific","CEB","05:20","08:50",210,"DG6857","Cebgo","10:00",380],["05:55","Z2763","Philippines AirAsia","CEB","07:20","11:05",225,"DG6855","Cebgo","12:15",380],["04:50","5J561","Cebu Pacific","CEB","06:25","10:20",235,"PR2355","PAL","11:15",385],["04:50","PR2835","PAL","CEB","06:05","10:20",255,"PR2355","PAL","11:15",385],["10:10","5J585","Cebu Pacific","CEB","11:40","15:50",250,"PR2382","PAL","16:45",395],["02:30","PR2803","PAL","DVO","04:15","08:00",225,"DG6872","Cebgo","09:10",400],["04:50","5J561","Cebu Pacific","CEB","06:25","10:20",235,"DG6861","Cebgo","11:30",400],["04:50","PR2835","PAL","CEB","06:05","10:20",255,"DG6861","Cebgo","11:30",400],["07:00","PR2855","PAL","CEB","08:25","13:10",285,"PR2351","PAL","14:05",425],["08:40","PR2849","PAL","CEB","10:05","14:50",285,"DG6859","Cebgo","16:00",440],["04:50","5J561","Cebu Pacific","CEB","06:25","11:05",280,"DG6855","Cebgo","12:15",445],["04:50","PR2835","PAL","CEB","06:05","11:05",300,"DG6855","Cebgo","12:15",445],["06:40","PR2845","PAL","CEB","08:10","13:10",300,"PR2351","PAL","14:05",445],["08:30","5J551","Cebu Pacific","CEB","10:05","14:50",285,"DG6859","Cebgo","16:00",450],["02:25","PR2841","PAL","CEB","03:45","08:50",305,"DG6857","Cebgo","10:00",455],["03:40","5J563","Cebu Pacific","CEB","05:20","10:20",300,"PR2355","PAL","11:15",455],["07:00","PR2855","PAL","CEB","08:25","13:30",305,"DG6853","Cebgo","14:40",460],["03:40","5J563","Cebu Pacific","CEB","05:20","10:20",300,"DG6861","Cebgo","11:30",470],["06:05","5J587","Cebu Pacific","CEB","07:40","13:10",330,"PR2351","PAL","14:05",480],["06:40","PR2845","PAL","CEB","08:10","13:30",320,"DG6853","Cebgo","14:40",480],["08:40","PR2849","PAL","CEB","10:05","15:50",345,"PR2382","PAL","16:45",485],["05:55","Z2763","Philippines AirAsia","CEB","07:20","13:10",350,"PR2351","PAL","14:05",490],["08:30","5J551","Cebu Pacific","CEB","10:05","15:50",345,"PR2382","PAL","16:45",495],["03:40","5J563","Cebu Pacific","CEB","05:20","11:05",345,"DG6855","Cebgo","12:15",515],["06:05","5J587","Cebu Pacific","CEB","07:40","13:30",350,"DG6853","Cebgo","14:40",515],["05:55","Z2763","Philippines AirAsia","CEB","07:20","13:30",370,"DG6853","Cebgo","14:40",525],["02:25","PR2841","PAL","CEB","03:45","10:20",395,"PR2355","PAL","11:15",530],["07:00","PR2855","PAL","CEB","08:25","14:50",385,"DG6859","Cebgo","16:00",540],["02:25","PR2841","PAL","CEB","03:45","10:20",395,"DG6861","Cebgo","11:30",545],["04:50","5J561","Cebu Pacific","CEB","06:25","13:10",405,"PR2351","PAL","14:05",555],["04:50","PR2835","PAL","CEB","06:05","13:10",425,"PR2351","PAL","14:05",555],["06:40","PR2845","PAL","CEB","08:10","14:50",400,"DG6859","Cebgo","16:00",560],["07:00","PR2855","PAL","CEB","08:25","15:50",445,"PR2382","PAL","16:45",585],["02:25","PR2841","PAL","CEB","03:45","11:05",440,"DG6855","Cebgo","12:15",590],["04:50","5J561","Cebu Pacific","CEB","06:25","13:30",425,"DG6853","Cebgo","14:40",590],["04:50","PR2835","PAL","CEB","06:05","13:30",445,"DG6853","Cebgo","14:40",590],["06:05","5J587","Cebu Pacific","CEB","07:40","14:50",430,"DG6859","Cebgo","16:00",595],["05:55","Z2763","Philippines AirAsia","CEB","07:20","14:50",450,"DG6859","Cebgo","16:00",605],["06:40","PR2845","PAL","CEB","08:10","15:50",460,"PR2382","PAL","16:45",605],["03:40","5J563","Cebu Pacific","CEB","05:20","13:10",470,"PR2351","PAL","14:05",625],["06:05","5J587","Cebu Pacific","CEB","07:40","15:50",490,"PR2382","PAL","16:45",640],["05:55","Z2763","Philippines AirAsia","CEB","07:20","15:50",510,"PR2382","PAL","16:45",650],["03:40","5J563","Cebu Pacific","CEB","05:20","13:30",490,"DG6853","Cebgo","14:40",660],["04:50","5J561","Cebu Pacific","CEB","06:25","14:50",505,"DG6859","Cebgo","16:00",670],["04:50","PR2835","PAL","CEB","06:05","14:50",525,"DG6859","Cebgo","16:00",670],["02:25","PR2841","PAL","CEB","03:45","13:10",565,"PR2351","PAL","14:05",700],["04:50","5J561","Cebu Pacific","CEB","06:25","15:50",565,"PR2382","PAL","16:45",715],["04:50","PR2835","PAL","CEB","06:05","15:50",585,"PR2382","PAL","16:45",715],["02:25","PR2841","PAL","CEB","03:45","13:30",585,"DG6853","Cebgo","14:40",735],["03:40","5J563","Cebu Pacific","CEB","05:20","14:50",570,"DG6859","Cebgo","16:00",740],["03:40","5J563","Cebu Pacific","CEB","05:20","15:50",630,"PR2382","PAL","16:45",785],["02:25","PR2841","PAL","CEB","03:45","14:50",665,"DG6859","Cebgo","16:00",815],["02:25","PR2841","PAL","CEB","03:45","15:50",725,"PR2382","PAL","16:45",860]],"2027-06-07":[["03:55","Z2779","Philippines AirAsia","CEB","05:20","06:20",60,"PR2374","PAL","07:10",195],["03:40","5J563","Cebu Pacific","CEB","05:20","06:20",60,"PR2374","PAL","07:10",210],["03:20","Z2759","Philippines AirAsia","CEB","04:45","06:00",75,"2R857","Sunlight Air","07:00",220],["02:25","PR2841","PAL","CEB","03:45","05:00",75,"DG6851","Cebgo","06:10",225],["13:00","5J557","Cebu Pacific","CEB","14:35","15:50",75,"PR2382","PAL","16:45",225],["03:20","Z2759","Philippines AirAsia","CEB","04:45","06:20",95,"PR2374","PAL","07:10",230],["06:05","5J587","Cebu Pacific","CEB","07:40","08:50",70,"DG6857","Cebgo","10:00",235],["10:10","5J585","Cebu Pacific","CEB","11:40","13:10",90,"PR2351","PAL","14:05",235],["10:45","5J565","Cebu Pacific","CEB","12:20","13:30",70,"DG6853","Cebgo","14:40",235],["05:55","Z2763","Philippines AirAsia","CEB","07:20","08:50",90,"DG6857","Cebgo","10:00",245],["08:40","PR2849","PAL","CEB","10:05","11:40",95,"DG6855","Cebgo","12:50",250],["11:50","PR2853","PAL","CEB","13:30","14:50",80,"DG6859","Cebgo","16:00",250],["05:45","PR1851","PAL","CEB","07:15","08:50",95,"DG6857","Cebgo","10:00",255],["07:00","5J2501","Cebu Pacific","CEB","08:35","10:20",105,"PR2355","PAL","11:15",255],["08:30","5J551","Cebu Pacific","CEB","10:05","11:40",95,"DG6855","Cebgo","12:50",260],["07:00","5J2501","Cebu Pacific","CEB","08:35","10:20",105,"DG6861","Cebgo","11:30",270],["10:10","5J585","Cebu Pacific","CEB","11:40","13:30",110,"DG6853","Cebgo","14:40",270],["02:25","PR2841","PAL","CEB","03:45","06:00",135,"2R857","Sunlight Air","07:00",275],["06:40","PR2845","PAL","CEB","08:10","10:20",130,"PR2355","PAL","11:15",275],["02:25","PR2841","PAL","CEB","03:45","06:20",155,"PR2374","PAL","07:10",285],["04:20","5J965","Cebu Pacific","DVO","06:20","08:00",100,"DG6872","Cebgo","09:10",290],["06:40","PR2845","PAL","CEB","08:10","10:20",130,"DG6861","Cebgo","11:30",290],["11:50","PR2853","PAL","CEB","13:30","15:50",140,"PR2382","PAL","16:45",295],["04:50","5J561","Cebu Pacific","CEB","06:25","08:50",145,"DG6857","Cebgo","10:00",310],["04:50","PR2835","PAL","CEB","06:05","08:50",165,"DG6857","Cebgo","10:00",310],["06:05","5J587","Cebu Pacific","CEB","07:40","10:20",160,"PR2355","PAL","11:15",310],["10:45","5J565","Cebu Pacific","CEB","12:20","14:50",150,"DG6859","Cebgo","16:00",315],["05:55","Z2763","Philippines AirAsia","CEB","07:20","10:20",180,"PR2355","PAL","11:15",320],["06:05","5J587","Cebu Pacific","CEB","07:40","10:20",160,"DG6861","Cebgo","11:30",325],["08:40","PR2849","PAL","CEB","10:05","13:10",185,"PR2351","PAL","14:05",325],["05:45","PR1851","PAL","CEB","07:15","10:20",185,"PR2355","PAL","11:15",330],["05:55","Z2763","Philippines AirAsia","CEB","07:20","10:20",180,"DG6861","Cebgo","11:30",335],["08:30","5J551","Cebu Pacific","CEB","10:05","13:10",185,"PR2351","PAL","14:05",335],["05:45","PR1851","PAL","CEB","07:15","10:20",185,"DG6861","Cebgo","11:30",345],["03:20","PR2809","PAL","DVO","05:20","08:00",160,"DG6872","Cebgo","09:10",350],["07:00","5J2501","Cebu Pacific","CEB","08:35","11:40",185,"DG6855","Cebgo","12:50",350],["10:10","5J585","Cebu Pacific","CEB","11:40","14:50",190,"DG6859","Cebgo","16:00",350],["08:40","PR2849","PAL","CEB","10:05","13:30",205,"DG6853","Cebgo","14:40",360],["10:45","5J565","Cebu Pacific","CEB","12:20","15:50",210,"PR2382","PAL","16:45",360],["03:55","Z2779","Philippines AirAsia","CEB","05:20","08:50",210,"DG6857","Cebgo","10:00",365],["00:00","5J553","Cebu Pacific","CEB","01:30","05:00",210,"DG6851","Cebgo","06:10",370],["06:40","PR2845","PAL","CEB","08:10","11:40",210,"DG6855","Cebgo","12:50",370],["08:30","5J551","Cebu Pacific","CEB","10:05","13:30",205,"DG6853","Cebgo","14:40",370],["03:40","5J563","Cebu Pacific","CEB","05:20","08:50",210,"DG6857","Cebgo","10:00",380],["04:50","5J561","Cebu Pacific","CEB","06:25","10:20",235,"PR2355","PAL","11:15",385],["04:50","PR2835","PAL","CEB","06:05","10:20",255,"PR2355","PAL","11:15",385],["10:10","5J585","Cebu Pacific","CEB","11:40","15:50",250,"PR2382","PAL","16:45",395],["02:30","PR2803","PAL","DVO","04:15","08:00",225,"DG6872","Cebgo","09:10",400],["03:20","Z2759","Philippines AirAsia","CEB","04:45","08:50",245,"DG6857","Cebgo","10:00",400],["04:50","5J561","Cebu Pacific","CEB","06:25","10:20",235,"DG6861","Cebgo","11:30",400],["04:50","PR2835","PAL","CEB","06:05","10:20",255,"DG6861","Cebgo","11:30",400],["06:05","5J587","Cebu Pacific","CEB","07:40","11:40",240,"DG6855","Cebgo","12:50",405],["05:55","Z2763","Philippines AirAsia","CEB","07:20","11:40",260,"DG6855","Cebgo","12:50",415],["00:00","5J553","Cebu Pacific","CEB","01:30","06:00",270,"2R857","Sunlight Air","07:00",420],["05:45","PR1851","PAL","CEB","07:15","11:40",265,"DG6855","Cebgo","12:50",425],["07:00","5J2501","Cebu Pacific","CEB","08:35","13:10",275,"PR2351","PAL","14:05",425],["00:00","5J553","Cebu Pacific","CEB","01:30","06:20",290,"PR2374","PAL","07:10",430],["03:55","Z2779","Philippines AirAsia","CEB","05:20","10:20",300,"PR2355","PAL","11:15",440],["08:40","PR2849","PAL","CEB","10:05","14:50",285,"DG6859","Cebgo","16:00",440],["06:40","PR2845","PAL","CEB","08:10","13:10",300,"PR2351","PAL","14:05",445],["08:30","5J551","Cebu Pacific","CEB","10:05","14:50",285,"DG6859","Cebgo","16:00",450],["02:25","PR2841","PAL","CEB","03:45","08:50",305,"DG6857","Cebgo","10:00",455],["03:40","5J563","Cebu Pacific","CEB","05:20","10:20",300,"PR2355","PAL","11:15",455],["03:55","Z2779","Philippines AirAsia","CEB","05:20","10:20",300,"DG6861","Cebgo","11:30",455],["07:00","5J2501","Cebu Pacific","CEB","08:35","13:30",295,"DG6853","Cebgo","14:40",460],["03:40","5J563","Cebu Pacific","CEB","05:20","10:20",300,"DG6861","Cebgo","11:30",470],["03:20","Z2759","Philippines AirAsia","CEB","04:45","10:20",335,"PR2355","PAL","11:15",475],["04:50","5J561","Cebu Pacific","CEB","06:25","11:40",315,"DG6855","Cebgo","12:50",480],["04:50","PR2835","PAL","CEB","06:05","11:40",335,"DG6855","Cebgo","12:50",480],["06:05","5J587","Cebu Pacific","CEB","07:40","13:10",330,"PR2351","PAL","14:05",480],["06:40","PR2845","PAL","CEB","08:10","13:30",320,"DG6853","Cebgo","14:40",480],["08:40","PR2849","PAL","CEB","10:05","15:50",345,"PR2382","PAL","16:45",485],["03:20","Z2759","Philippines AirAsia","CEB","04:45","10:20",335,"DG6861","Cebgo","11:30",490],["05:55","Z2763","Philippines AirAsia","CEB","07:20","13:10",350,"PR2351","PAL","14:05",490],["08:30","5J551","Cebu Pacific","CEB","10:05","15:50",345,"PR2382","PAL","16:45",495],["05:45","PR1851","PAL","CEB","07:15","13:10",355,"PR2351","PAL","14:05",500],["06:05","5J587","Cebu Pacific","CEB","07:40","13:30",350,"DG6853","Cebgo","14:40",515],["05:55","Z2763","Philippines AirAsia","CEB","07:20","13:30",370,"DG6853","Cebgo","14:40",525],["02:25","PR2841","PAL","CEB","03:45","10:20",395,"PR2355","PAL","11:15",530],["03:55","Z2779","Philippines AirAsia","CEB","05:20","11:40",380,"DG6855","Cebgo","12:50",535],["05:45","PR1851","PAL","CEB","07:15","13:30",375,"DG6853","Cebgo","14:40",535],["07:00","5J2501","Cebu Pacific","CEB","08:35","14:50",375,"DG6859","Cebgo","16:00",540],["02:25","PR2841","PAL","CEB","03:45","10:20",395,"DG6861","Cebgo","11:30",545],["03:40","5J563","Cebu Pacific","CEB","05:20","11:40",380,"DG6855","Cebgo","12:50",550],["04:50","5J561","Cebu Pacific","CEB","06:25","13:10",405,"PR2351","PAL","14:05",555],["04:50","PR2835","PAL","CEB","06:05","13:10",425,"PR2351","PAL","14:05",555],["06:40","PR2845","PAL","CEB","08:10","14:50",400,"DG6859","Cebgo","16:00",560],["03:20","Z2759","Philippines AirAsia","CEB","04:45","11:40",415,"DG6855","Cebgo","12:50",570],["07:00","5J2501","Cebu Pacific","CEB","08:35","15:50",435,"PR2382","PAL","16:45",585],["04:50","5J561","Cebu Pacific","CEB","06:25","13:30",425,"DG6853","Cebgo","14:40",590],["04:50","PR2835","PAL","CEB","06:05","13:30",445,"DG6853","Cebgo","14:40",590],["06:05","5J587","Cebu Pacific","CEB","07:40","14:50",430,"DG6859","Cebgo","16:00",595],["00:00","5J553","Cebu Pacific","CEB","01:30","08:50",440,"DG6857","Cebgo","10:00",600],["05:55","Z2763","Philippines AirAsia","CEB","07:20","14:50",450,"DG6859","Cebgo","16:00",605],["06:40","PR2845","PAL","CEB","08:10","15:50",460,"PR2382","PAL","16:45",605],["03:55","Z2779","Philippines AirAsia","CEB","05:20","13:10",470,"PR2351","PAL","14:05",610],["05:45","PR1851","PAL","CEB","07:15","14:50",455,"DG6859","Cebgo","16:00",615],["02:25","PR2841","PAL","CEB","03:45","11:40",475,"DG6855","Cebgo","12:50",625],["03:40","5J563","Cebu Pacific","CEB","05:20","13:10",470,"PR2351","PAL","14:05",625],["06:05","5J587","Cebu Pacific","CEB","07:40","15:50",490,"PR2382","PAL","16:45",640],["03:20","Z2759","Philippines AirAsia","CEB","04:45","13:10",505,"PR2351","PAL","14:05",645],["03:55","Z2779","Philippines AirAsia","CEB","05:20","13:30",490,"DG6853","Cebgo","14:40",645],["05:55","Z2763","Philippines AirAsia","CEB","07:20","15:50",510,"PR2382","PAL","16:45",650],["03:40","5J563","Cebu Pacific","CEB","05:20","13:30",490,"DG6853","Cebgo","14:40",660],["05:45","PR1851","PAL","CEB","07:15","15:50",515,"PR2382","PAL","16:45",660],["04:50","5J561","Cebu Pacific","CEB","06:25","14:50",505,"DG6859","Cebgo","16:00",670],["04:50","PR2835","PAL","CEB","06:05","14:50",525,"DG6859","Cebgo","16:00",670],["00:00","5J553","Cebu Pacific","CEB","01:30","10:20",530,"PR2355","PAL","11:15",675],["03:20","Z2759","Philippines AirAsia","CEB","04:45","13:30",525,"DG6853","Cebgo","14:40",680],["00:00","5J553","Cebu Pacific","CEB","01:30","10:20",530,"DG6861","Cebgo","11:30",690],["02:25","PR2841","PAL","CEB","03:45","13:10",565,"PR2351","PAL","14:05",700],["04:50","5J561","Cebu Pacific","CEB","06:25","15:50",565,"PR2382","PAL","16:45",715],["04:50","PR2835","PAL","CEB","06:05","15:50",585,"PR2382","PAL","16:45",715],["03:55","Z2779","Philippines AirAsia","CEB","05:20","14:50",570,"DG6859","Cebgo","16:00",725],["02:25","PR2841","PAL","CEB","03:45","13:30",585,"DG6853","Cebgo","14:40",735],["03:40","5J563","Cebu Pacific","CEB","05:20","14:50",570,"DG6859","Cebgo","16:00",740],["03:20","Z2759","Philippines AirAsia","CEB","04:45","14:50",605,"DG6859","Cebgo","16:00",760],["00:00","5J553","Cebu Pacific","CEB","01:30","11:40",610,"DG6855","Cebgo","12:50",770],["03:55","Z2779","Philippines AirAsia","CEB","05:20","15:50",630,"PR2382","PAL","16:45",770],["03:40","5J563","Cebu Pacific","CEB","05:20","15:50",630,"PR2382","PAL","16:45",785],["03:20","Z2759","Philippines AirAsia","CEB","04:45","15:50",665,"PR2382","PAL","16:45",805],["02:25","PR2841","PAL","CEB","03:45","14:50",665,"DG6859","Cebgo","16:00",815],["00:00","5J553","Cebu Pacific","CEB","01:30","13:10",700,"PR2351","PAL","14:05",845],["02:25","PR2841","PAL","CEB","03:45","15:50",725,"PR2382","PAL","16:45",860],["00:00","5J553","Cebu Pacific","CEB","01:30","13:30",720,"DG6853","Cebgo","14:40",880],["00:00","5J553","Cebu Pacific","CEB","01:30","14:50",800,"DG6859","Cebgo","16:00",960],["00:00","5J553","Cebu Pacific","CEB","01:30","15:50",860,"PR2382","PAL","16:45",1005]]},"f2":{"2027-06-11":[["07:20","2R858","Sunlight Air","CEB","08:20","09:20",60,"DG5337","Cebgo","11:10",230],["16:20","DG6860","Cebgo","CEB","17:20","18:50",90,"DG6254","Cebgo","20:35",255],["07:55","DG6760","Cebgo","CRK","10:20","11:20",60,"DG5219","Cebgo","12:55",300],["15:00","DG6854","Cebgo","CEB","16:05","18:50",165,"DG6254","Cebgo","20:35",335],["14:15","DG6764","Cebgo","CRK","17:00","18:20",80,"DG5215","Cebgo","19:55",340],["14:35","PR2352","PAL","CEB","15:25","18:50",205,"DG6254","Cebgo","20:35",360],["09:00","2R990","Sunlight Air","CRK","11:15","14:45",210,"DG6357","Cebgo","16:20",440],["13:10","DG6856","Cebgo","CEB","14:10","18:50",280,"DG6254","Cebgo","20:35",445],["07:55","DG6760","Cebgo","CRK","10:20","14:45",265,"DG6357","Cebgo","16:20",505],["11:50","DG6862","Cebgo","CEB","12:50","18:50",360,"DG6254","Cebgo","20:35",525],["11:45","PR2356","PAL","CEB","12:35","18:50",375,"DG6254","Cebgo","20:35",530],["09:00","2R990","Sunlight Air","CRK","11:15","17:05",350,"DG6359","Cebgo","18:40",580],["10:20","DG6858","Cebgo","CEB","11:25","18:50",445,"DG6254","Cebgo","20:35",615],["07:55","DG6760","Cebgo","CRK","10:20","17:05",405,"DG6359","Cebgo","18:40",645],["09:00","2R990","Sunlight Air","CRK","11:15","18:20",425,"DG5215","Cebgo","19:55",655],["09:35","DG6850","Cebgo","CEB","10:40","18:50",490,"DG6254","Cebgo","20:35",660],["07:55","DG6760","Cebgo","CRK","10:20","18:20",480,"DG5215","Cebgo","19:55",720],["07:40","PR2375","PAL","CEB","08:30","18:50",620,"DG6254","Cebgo","20:35",775],["07:20","2R858","Sunlight Air","CEB","08:20","18:50",630,"DG6254","Cebgo","20:35",795]],"2027-06-12":[["07:20","2R858","Sunlight Air","CEB","08:20","09:20",60,"DG5337","Cebgo","11:10",230],["16:20","DG6860","Cebgo","CEB","17:20","18:50",90,"DG6254","Cebgo","20:35",255],["07:55","DG6760","Cebgo","CRK","10:20","11:20",60,"DG5219","Cebgo","12:55",300],["15:00","DG6854","Cebgo","CEB","16:05","18:50",165,"DG6254","Cebgo","20:35",335],["14:15","DG6764","Cebgo","CRK","17:00","18:20",80,"DG5215","Cebgo","19:55",340],["14:35","PR2352","PAL","CEB","15:25","18:50",205,"DG6254","Cebgo","20:35",360],["13:25","DG6858","Cebgo","CEB","14:30","18:50",260,"DG6254","Cebgo","20:35",430],["09:00","2R990","Sunlight Air","CRK","11:15","14:45",210,"DG6357","Cebgo","16:20",440],["12:35","DG6856","Cebgo","CEB","13:35","18:50",315,"DG6254","Cebgo","20:35",480],["07:55","DG6760","Cebgo","CRK","10:20","14:45",265,"DG6357","Cebgo","16:20",505],["11:50","DG6862","Cebgo","CEB","12:50","18:50",360,"DG6254","Cebgo","20:35",525],["11:45","PR2356","PAL","CEB","12:35","18:50",375,"DG6254","Cebgo","20:35",530],["09:00","2R990","Sunlight Air","CRK","11:15","17:05",350,"DG6359","Cebgo","18:40",580],["07:55","DG6760","Cebgo","CRK","10:20","17:05",405,"DG6359","Cebgo","18:40",645],["09:00","2R990","Sunlight Air","CRK","11:15","18:20",425,"DG5215","Cebgo","19:55",655],["09:35","DG6850","Cebgo","CEB","10:40","18:50",490,"DG6254","Cebgo","20:35",660],["07:55","DG6760","Cebgo","CRK","10:20","18:20",480,"DG5215","Cebgo","19:55",720],["07:40","PR2375","PAL","CEB","08:30","18:50",620,"DG6254","Cebgo","20:35",775],["07:20","2R858","Sunlight Air","CEB","08:20","18:50",630,"DG6254","Cebgo","20:35",795]],"2027-06-13":[["07:20","2R858","Sunlight Air","CEB","08:20","09:20",60,"DG5337","Cebgo","11:10",230],["16:20","DG6860","Cebgo","CEB","17:20","18:50",90,"DG6254","Cebgo","20:35",255],["07:55","DG6760","Cebgo","CRK","10:20","11:20",60,"DG5219","Cebgo","12:55",300],["15:00","DG6854","Cebgo","CEB","16:05","18:50",165,"DG6254","Cebgo","20:35",335],["14:15","DG6764","Cebgo","CRK","17:00","18:20",80,"DG5215","Cebgo","19:55",340],["14:35","PR2352","PAL","CEB","15:25","18:50",205,"DG6254","Cebgo","20:35",360],["09:00","2R990","Sunlight Air","CRK","11:15","14:45",210,"DG6357","Cebgo","16:20",440],["12:35","DG6856","Cebgo","CEB","13:35","18:50",315,"DG6254","Cebgo","20:35",480],["07:55","DG6760","Cebgo","CRK","10:20","14:45",265,"DG6357","Cebgo","16:20",505],["11:50","DG6862","Cebgo","CEB","12:50","18:50",360,"DG6254","Cebgo","20:35",525],["11:45","PR2356","PAL","CEB","12:35","18:50",375,"DG6254","Cebgo","20:35",530],["09:00","2R990","Sunlight Air","CRK","11:15","17:05",350,"DG6359","Cebgo","18:40",580],["10:20","DG6858","Cebgo","CEB","11:25","18:50",445,"DG6254","Cebgo","20:35",615],["07:55","DG6760","Cebgo","CRK","10:20","17:05",405,"DG6359","Cebgo","18:40",645],["09:00","2R990","Sunlight Air","CRK","11:15","18:20",425,"DG5215","Cebgo","19:55",655],["09:35","DG6850","Cebgo","CEB","10:40","18:50",490,"DG6254","Cebgo","20:35",660],["07:55","DG6760","Cebgo","CRK","10:20","18:20",480,"DG5215","Cebgo","19:55",720],["07:40","PR2375","PAL","CEB","08:30","18:50",620,"DG6254","Cebgo","20:35",775],["07:20","2R858","Sunlight Air","CEB","08:20","18:50",630,"DG6254","Cebgo","20:35",795]]},"f3":{"2027-06-16":[["06:50","DG5336","Cebgo",null,"08:40",null,0,null,null,"08:40",110],["16:40","DG6255","Cebgo",null,"18:25",null,0,null,null,"18:25",105]],"2027-06-17":[["06:50","DG5336","Cebgo",null,"08:40",null,0,null,null,"08:40",110],["16:40","DG6255","Cebgo",null,"18:25",null,0,null,null,"18:25",105]],"2027-06-18":[["06:50","DG5336","Cebgo",null,"08:40",null,0,null,null,"08:40",110],["16:40","DG6255","Cebgo",null,"18:25",null,0,null,null,"18:25",105]]}};
+
+const STOPS=[
+  {key:'iao',name:'Siargao',code:'IAO'},
+  {key:'eni',name:'El Nido',code:'ENI'},
+  {key:'ceb',name:'Cebu',code:'CEB'}
+];
+const STEPS=[
+  {id:'f1',stop:0,kind:'flight',title:'Fly Manila → Siargao',route:'MNL → IAO · 1 stop',from:'MNL',to:'IAO',sliders:true},
+  {id:'h1',stop:0,kind:'hotel', title:'Choose your Siargao hotel'},
+  {id:'f2',stop:1,kind:'flight',title:'Fly Siargao → El Nido',route:'IAO → ENI · 1 stop',from:'IAO',to:'ENI',byFrom:'Siargao'},
+  {id:'h2',stop:1,kind:'hotel', title:'Choose your El Nido hotel'},
+  {id:'f3',stop:2,kind:'flight',title:'Fly El Nido → Cebu',route:'ENI → CEB · nonstop',from:'ENI',to:'CEB',direct:true,byFrom:'El Nido'},
+  {id:'h3',stop:2,kind:'hotel', title:'Choose your Cebu hotel'}
+];
+/* Sample hotels — placeholders until the real list arrives */
+const HOTELS={
+  h1:[
+    {id:'s1',name:'Sample beachfront resort',area:'General Luna · walk to Cloud 9',price:7500,note:'Pool, breakfast included'},
+    {id:'s2',name:'Sample boutique villas',area:'General Luna · inland, quiet',price:4800,note:'Private villa, scooter rental'},
+    {id:'s3',name:'Sample surf hostel',area:'General Luna · town centre',price:1600,note:'Private room, shared lounge'}],
+  h2:[
+    {id:'e1',name:'Sample cliffside resort',area:'Corong Corong · sunset side',price:9200,note:'Sea view, island-hop desk'},
+    {id:'e2',name:'Sample beach cottages',area:'Marimegmeg (Las Cabanas)',price:5400,note:'Steps from the beach'},
+    {id:'e3',name:'Sample town guesthouse',area:'El Nido town',price:2200,note:'Near boat terminal'}],
+  h3:[
+    {id:'c1',name:'Sample island resort',area:'Mactan · near the airport',price:8000,note:'Beach club, airport shuttle'},
+    {id:'c2',name:'Sample city hotel',area:'Cebu IT Park',price:4200,note:'Rooftop pool, restaurants nearby'},
+    {id:'c3',name:'Sample budget hotel',area:'Mactan · Lapu-Lapu City',price:1900,note:'10 min to airport'}]
+};
+
+const $=s=>document.querySelector(s);
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const dt=d=>new Date(d+'T12:00:00');
+const fmtDay=d=>{const x=dt(d);return DOW[x.getDay()]+' '+MON[x.getMonth()]+' '+x.getDate();};
+const short=d=>{const x=dt(d);return DOW[x.getDay()]+' '+x.getDate();};
+const hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const dur=m=>Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m';
+const toMin=t=>+t.slice(0,2)*60+ +t.slice(3,5);
+const peso=n=>'₱'+n.toLocaleString('en-US');
+const nights=(a,b)=>Math.round((dt(b)-dt(a))/864e5);
+const rowKey=(d,r)=>d+'|'+r[1]+'|'+(r[7]||'');
+const toObj=r=>({dep:r[0],f1:r[1],a1:r[2],via:r[3],arr1:r[4],dep2:r[5],lay:r[6],f2:r[7],a2:r[8],arr:r[9],total:r[10]});
+
+/* ---------- state ---------- */
+let plan={};            // shared: {f1:{date,row}, h1:{id}, ...}
+let cur=0;              // per viewer
+let ui={day:{}, sort:{}, arr:0, wait:1439, by:{f2:1439,f3:1439}, shown:{}};
+try{const s=JSON.parse(localStorage.getItem('ph27-ui')||'{}');if(Number.isInteger(s.cur))cur=Math.min(5,Math.max(0,s.cur));}catch(e){}
+const remember=()=>{try{localStorage.setItem('ph27-ui',JSON.stringify({cur}));}catch(e){}};
+
+let dbRef=null, canWrite=false, writing=Promise.resolve();
+function setSave(s,t){const el=$('#save');el.dataset.s=s;$('#saveTxt').textContent=t;}
+
+function choose(stepId,val){
+  if(locked)return;
+  plan={...plan,[stepId]:val};
+  render();
+  if(!dbRef){try{localStorage.setItem('ph27-plan',JSON.stringify(plan));setSave('saved','Saved on this device');}catch(e){setSave('local','Not saved · this browser blocks storage');}return;}
+  if(!canWrite){setSave('local','View only · your picks aren\'t saved');return;}
+  setSave('saving','Saving…');
+  const body={...plan,updatedAt:new Date().toISOString()};
+  writing=writing.then(()=>dbRef.set(body)).then(()=>setSave('saved','Saved · shared with everyone on this link'))
+    .catch(e=>{ if(e&&e.code==='invalid_argument'){canWrite=false;setSave('local','View only · your picks aren\'t saved');}
+      else setSave('local','Couldn\'t save · try again');});
+}
+
+/* ---------- derived ---------- */
+const done=id=>!!plan[id];
+function stayDates(i){ // hotel step index (0..2) -> {in,out}
+  const fin=plan[['f1','f2','f3'][i]], fout=plan[['f2','f3',null][i]];
+  return {in:fin?fin.date:null,out:fout?fout.date:null};
+}
+function stepSub(s){
+  const p=plan[s.id];
+  if(!p) return s.kind==='flight'?'Pick a flight':'Pick a hotel';
+  if(s.kind==='flight'){const o=toObj(p.row);return short(p.date)+' · '+o.dep+'→'+o.arr;}
+  const h=HOTELS[s.id].find(x=>x.id===p.id);return h?h.name:'Chosen';
+}
+
+/* ---------- render: nav ---------- */
+function renderNav(){
+  const n=STEPS.filter(s=>done(s.id)).length;
+  $('#bar').innerHTML=STEPS.map((s,i)=>`<span class="${done(s.id)?'done':''} ${i===cur?'cur':''}" title="${s.title}"></span>`).join('');
+  $('#pnow').textContent='Step '+(cur+1)+' of 6 · '+STEPS[cur].title;
+  $('#pcount').textContent=n+' of 6 chosen';
+  $('#steps').innerHTML=STOPS.map((st,si)=>`<div class="stop"><h2><span class="dot" style="background:var(--${st.key})"></span>${st.name}</h2>`+
+    STEPS.map((s,i)=>s.stop!==si?'':`<button class="step ${done(s.id)?'done':''}" data-go="${i}" ${i===cur?'aria-current="step"':''} type="button">
+      <span class="tick">${done(s.id)?'✓':''}</span><span>${s.kind==='flight'?'Select your flight':'Select your hotel'}<small>${stepSub(s)}</small></span></button>`).join('')+'</div>').join('');
+  $('#chips').innerHTML=STEPS.map((s,i)=>`<button class="chip ${done(s.id)?'done':''}" data-go="${i}" ${i===cur?'aria-current="step"':''} type="button">
+    <span class="tick">${done(s.id)?'✓':i+1}</span>${STOPS[s.stop].name} ${s.kind}</button>`).join('');
+  const c=$('#chips [aria-current]'); if(c) c.scrollIntoView({block:'nearest',inline:'center'});
+}
+
+/* ---------- render: workspace ---------- */
+function flightRows(s){
+  const days=Object.keys(DATA[s.id]);
+  const day=ui.day[s.id]||(plan[s.id]&&plan[s.id].date)||days[0];
+  ui.day[s.id]=day;
+  let rows=DATA[s.id][day].map(r=>({r,o:toObj(r),wait:s.sliders?toMin(r[0])-ui.arr:0}));
+  if(s.sliders) rows=rows.filter(x=>x.wait>=0&&x.wait<=ui.wait);
+  const sort=ui.sort[s.id]||(s.sliders?'door':'total');
+  const key={door:x=>x.wait+x.o.total,total:x=>x.o.total,dep:x=>toMin(x.o.dep),arr:x=>toMin(x.o.arr)}[sort];
+  rows.sort((a,b)=>key(a)-key(b)||toMin(a.o.dep)-toMin(b.o.dep));
+  return {days,day,rows,sort};
+}
+function renderFlight(s){
+  const {days,day,sort}=flightRows(s);
+  const sortOpts=(s.sliders?[['door','Shortest door to door']]:[]).concat([['total','Shortest trip'],['dep','Earliest departure'],['arr','Earliest arrival']]);
+  return `
+  <div class="tabs" role="group" aria-label="Travel day">${days.map(d=>`<button class="tab" type="button" data-day="${d}" aria-pressed="${d===day}"><b>${short(d)}</b> · ${DATA[s.id][d].length}</button>`).join('')}</div>
+  <div class="controls">
+    ${s.sliders||s.byFrom?`
+    <div class="ctl tl" id="tl">
+      <div class="tl-head"><span>${s.sliders?'When you can leave Manila':'Departures from '+s.byFrom}</span><span id="tlRead"></span></div>
+      <div class="tl-track${s.sliders?'':' view'}" id="tlTrack">
+        <div class="tl-rail"></div>
+        ${s.sliders?'<div class="tl-band" id="tlBand" title="Drag to move the whole window"></div>':''}
+        ${[...new Set(DATA[s.id][day].map(r=>r[0]))].map(t=>`<span class="tl-dot" data-t="${toMin(t)}" style="left:${(toMin(t)/1440*100).toFixed(3)}%" title="${t}"></span>`).join('')}
+        ${s.sliders?`<button type="button" class="tl-h" id="tlA" role="slider" aria-label="You land in Manila at" aria-valuemin="0" aria-valuemax="1435"><span class="tl-lbl" id="tlAL"></span></button>`:''}
+        ${s.sliders?`<button type="button" class="tl-h" id="tlB" role="slider" aria-label="Latest you'll leave Manila" aria-valuemin="0" aria-valuemax="1439"><span class="tl-lbl" id="tlBL"></span></button>`:''}
+      </div>
+      <div class="tl-ticks">${[0,3,6,9,12,15,18,21,24].map(h=>`<span style="left:${h/24*100}%">${String(h).padStart(2,'0')}</span>`).join('')}</div>
+    </div>`:''}
+    ${s.direct?'':`<div class="ctl"><label for="sortS"><span>Sort by</span></label>
+      <select id="sortS">${sortOpts.map(([v,t])=>`<option value="${v}" ${v===sort?'selected':''}>${t}</option>`).join('')}</select></div>`}
+  </div>
+  <div class="fbody" id="fbody">${renderFlightBody(s)}</div>`;
+}
+function renderFlightBody(s){
+  const {day,rows}=flightRows(s);
+  const pick=plan[s.id], pickKey=pick?rowKey(pick.date,pick.row):null;
+  const limit=ui.shown[s.id+day]||20;
+  const best=rows.length?Math.min(...rows.map(x=>x.o.total)):0;
+  const showWait=s.sliders&&ui.arr>0;
+  const maxT=rows.length?Math.max(...rows.map(x=>x.o.total+(showWait?x.wait:0))):1;
+  const legend=s.direct?'':`<div class="legend" aria-hidden="true">${showWait?'<span><i class="sw wait"></i>Wait in Manila</span>':''}<span><i class="sw fly"></i>Flying</span><span><i class="sw lay"></i>Layover</span></div>`;
+  const nSame=s.direct?0:rows.filter(x=>x.o.a1===x.o.a2).length;
+  return `
+  ${legend}
+  <div class="meta"><span>${rows.length} ${s.direct?'nonstop flight':'connection'}${rows.length===1?'':'s'} on ${fmtDay(day)}${s.direct?'':` · <span style="color:var(--same);font-weight:600">${nSame} use one airline</span>`}</span>${pick&&pick.date!==day?`<span>Your pick is on ${short(pick.date)}</span>`:''}</div>
+  <div class="list" role="radiogroup" aria-label="Flights">
+  ${rows.length?rows.slice(0,limit).map(({r,o,wait})=>{
+    const k=rowKey(day,r), on=k===pickKey, same=!s.direct&&o.a1===o.a2;
+    const A1=same?`<b>${o.a1}</b>`:o.a1, A2=same?`<b>${o.a2}</b>`:o.a2;
+    return `<button class="opt${same?' same':''}" type="button" role="radio" aria-checked="${on}" data-pick="${k}">
+      <span class="radio"></span>
+      <span><span class="times">${o.dep}<span class="arr">→</span>${o.arr}</span>${same?`<span class="pill same">Same airline · ${o.a1}</span>`:''}
+        <span class="legs">${s.direct?`<span>${o.f1} · ${o.a1}</span><span>Nonstop</span>`:
+          `<span>${o.f1} ${A1}</span><span>· <span class="via" style="color:var(--${o.via==='CEB'?'ceb':o.via==='CRK'?'iao':'eni'})">${o.via}</span> ${o.arr1}–${o.dep2} (${dur(o.lay)} layover)</span><span>· ${o.f2} ${A2}</span>`}
+          ${s.sliders&&ui.arr>0?`<span>· wait in MNL ${dur(wait)}</span>`:''}</span></span>
+      ${s.direct?'':segBar(o,showWait?wait:0,maxT)}
+      <span class="total"><span class="mono">${dur(s.sliders&&ui.arr>0?wait+o.total:o.total)}</span><small>${s.sliders&&ui.arr>0?'door to door':'total'}</small>${o.total===best&&!s.direct?'<br><span class="pill best">Fastest</span>':''}</span>
+    </button>`;}).join(''):`<div class="empty">${s.byFrom?'No flights leave this early. Drag “Leave by” later.':'No flights fit these settings. Try a later landing time or a longer wait.'}</div>`}
+  </div>
+  ${rows.length>limit?`<button class="more" type="button" data-more="${s.id+day}">Show ${Math.min(20,rows.length-limit)} more of ${rows.length-limit}</button>`:''}`;
+}
+function segBar(o,wait,maxT){
+  const span=(a,b)=>{let d=toMin(b)-toMin(a);return d<0?d+1440:d;};
+  const f1=span(o.dep,o.arr1), lay=o.lay, f2=span(o.dep2,o.arr);
+  const w=m=>(m/maxT*100).toFixed(2)+'%';
+  const parts=[wait?`<span class="seg wait" style="width:${w(wait)}" title="Wait in Manila ${dur(wait)}"></span>`:'',
+    `<span class="seg fly" style="width:${w(f1)}" title="${o.f1} ${dur(f1)}"></span>`,
+    `<span class="seg lay" style="width:${w(lay)}" title="Layover in ${o.via} ${dur(lay)}"></span>`,
+    `<span class="seg fly" style="width:${w(f2)}" title="${o.f2} ${dur(f2)}"></span>`].join('');
+  return `<span class="segbar"><span class="seg-track" role="img" aria-label="Flying ${dur(f1+f2)}, layover ${dur(lay)}${wait?', wait in Manila '+dur(wait):''}">${parts}</span>
+    <span class="seg-txt">Flying ${dur(f1+f2)} · Layover ${dur(lay)}${wait?' · MNL wait '+dur(wait):''}</span></span>`;
+}
+function renderHotel(s){
+  const i=+s.id[1]-1, d=stayDates(i), pick=plan[s.id];
+  const n=d.in&&d.out?nights(d.in,d.out):null;
+  return `
+  <div class="note"><b>Sample options.</b> These are placeholders so you can try the flow. Send your hotel list and they'll be replaced.</div>
+  <div class="meta"><span>${d.in?`Check in ${fmtDay(d.in)}`:'Check in: pick the flight first'}${d.out?` · check out ${fmtDay(d.out)} · ${n} night${n===1?'':'s'}`:(i===2?' · check-out not set yet':'')}</span></div>
+  <div class="list" role="radiogroup" aria-label="Hotels">
+  ${HOTELS[s.id].map(h=>`<button class="opt hotel" type="button" role="radio" aria-checked="${pick&&pick.id===h.id}" data-hotel="${h.id}">
+     <span class="radio"></span>
+     <span><span class="name">${h.name}</span><span class="area">${h.area}</span><span class="legs"><span>${h.note}</span></span></span>
+     <span class="total"><span class="price">${peso(h.price)}</span><small>per night${n?`<br>${peso(h.price*n)} for ${n}`:''}</small></span>
+   </button>`).join('')}
+  </div>`;
+}
+/* ---------- Manila timeline (one control: arrival + latest departure) ---------- */
+const endM=()=>Math.min(1439,ui.arr+ui.wait);
+const snap=m=>Math.round(m/5)*5;
+const pct=m=>(m/1440*100)+'%';
+function updateTl(){
+  const tr=document.getElementById('tlTrack'); if(!tr)return;
+  const st=STEPS[cur];
+  if(!st.sliders){ // view only: dots show when flights leave across the day
+    tr.querySelectorAll('.tl-dot').forEach(d=>d.classList.add('in'));
+    const rows=DATA[st.id][ui.day[st.id]]||[], times=new Set(rows.map(r=>r[0]));
+    $('#tlRead').innerHTML=`<b>${times.size}</b> departure time${times.size===1?'':'s'} · <b>${rows.length}</b> ${st.direct?'flight':'connection'}${rows.length===1?'':'s'}`;
+    return;
+  }
+  const a=ui.arr,b=endM();
+  const A=$('#tlA'),B=$('#tlB'),band=$('#tlBand');
+  A.style.left=pct(a);B.style.left=pct(b);band.style.left=pct(a);band.style.width=((b-a)/1440*100)+'%';
+  A.setAttribute('aria-valuenow',a);A.setAttribute('aria-valuetext','Land '+hm(a));
+  B.setAttribute('aria-valuenow',b);B.setAttribute('aria-valuetext','Leave by '+hm(b));
+  const AL=$('#tlAL'),BL=$('#tlBL');
+  AL.textContent='Land '+hm(a);BL.textContent='Leave by '+hm(b);
+  // labels sit centred over their handle; pinned inward at the ends; the second one lifts when they would collide
+  const w=tr.clientWidth||600, gap=(b-a)/1440*w;
+  AL.className='tl-lbl'+(a/1440*w<50?' edgeL':'');
+  BL.className='tl-lbl'+((1440-b)/1440*w<70?' edgeR':'')+(gap<150?' up':'');
+  tr.querySelectorAll('.tl-dot').forEach(d=>{const t=+d.dataset.t;d.classList.toggle('in',t>=a&&t<=b);});
+  const n=(DATA.f1[ui.day.f1]||[]).filter(r=>{const t=toMin(r[0]);return t>=a&&t<=b;}).length;
+  $('#tlRead').innerHTML=`Wait up to <b>${dur(b-a)}</b> · <b>${n}</b> connection${n===1?'':'s'}`;
+}
+function setWin(arr,end){
+  arr=Math.max(0,Math.min(1435,arr)); end=Math.max(arr,Math.min(1439,end));
+  if(arr===ui.arr&&end===endM())return;
+  ui.arr=arr; ui.wait=end>=1439&&arr===0?1439:end-arr;
+  updateTl(); refreshList();
+}
+// Moving the arrival keeps the chosen wait length; "Leave by" only displays clamped at 23:59
+function setArr(arr){
+  arr=Math.max(0,Math.min(1435,arr));
+  if(arr===ui.arr)return;
+  ui.arr=arr; updateTl(); refreshList();
+}
+function setBy(m){
+  const id=STEPS[cur].id; m=Math.max(0,Math.min(1439,m));
+  if(m===ui.by[id])return;
+  ui.by[id]=m; updateTl(); refreshList();
+}
+let drag=null;
+document.addEventListener('pointerdown',e=>{
+  if(locked)return;
+  const tr=e.target.closest('#tlTrack'); if(!tr)return;
+  const r=tr.getBoundingClientRect(), m=snap((e.clientX-r.left)/r.width*1440);
+  if(!STEPS[cur].sliders) return; // view-only timeline
+  let mode=e.target.closest('.tl-h')?e.target.closest('.tl-h').id:(e.target.closest('#tlBand')?'band':null);
+  if(!mode){ // tap on the rail: move the nearer handle there
+    mode=Math.abs(m-ui.arr)<=Math.abs(m-endM())?'tlA':'tlB';
+    if(mode==='tlA')setArr(m); else setWin(ui.arr,m);
+  }
+  // handles stacked on top of each other: let the first drag direction pick (left = Land, right = Leave by)
+  const handlePx=(endM()-ui.arr)/1440*r.width;
+  if((mode==='tlA'||mode==='tlB')&&handlePx<24) mode='pending';
+  drag={mode,r,start:m,off:m-ui.arr,width:endM()-ui.arr,id:e.pointerId,el:mode==='band'?$('#tlBand'):(mode==='pending'?$('#tlB'):$('#'+mode))};
+  drag.el.classList.add('drag');
+  try{tr.setPointerCapture(e.pointerId);}catch(_){}
+  if(mode==='tlA'||mode==='tlB')drag.el.focus({preventScroll:true});
+  e.preventDefault();
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.id)return;
+  const m=snap((e.clientX-drag.r.left)/drag.r.width*1440);
+  if(drag.mode==='by') return setBy(Math.min(1439,m));
+  if(drag.mode==='pending'){
+    if(Math.abs(m-drag.start)<5)return;
+    drag.el.classList.remove('drag');
+    drag.mode=m<drag.start?'tlA':'tlB'; drag.el=$('#'+drag.mode); drag.el.classList.add('drag'); drag.el.focus({preventScroll:true});
+  }
+  if(drag.mode==='tlA') setArr(m);
+  else if(drag.mode==='tlB') setWin(ui.arr,m);
+  else {const a=Math.max(0,Math.min(1439-drag.width,m-drag.off)); setWin(a,a+drag.width);}
+});
+const endDrag=e=>{if(!drag||e.pointerId!==drag.id)return;drag.el.classList.remove('drag');drag=null;};
+document.addEventListener('pointerup',endDrag);document.addEventListener('pointercancel',endDrag);
+document.addEventListener('keydown',e=>{
+  if(locked)return;
+  const h=e.target.closest&&e.target.closest('.tl-h'); if(!h)return;
+  const step=e.shiftKey?60:5, k=e.key;
+  let d=0; if(k==='ArrowRight'||k==='ArrowUp')d=step; else if(k==='ArrowLeft'||k==='ArrowDown')d=-step;
+  else if(k==='Home')d=-1440; else if(k==='End')d=1440; else return;
+  e.preventDefault();
+  if(!STEPS[cur].sliders) setBy(ui.by[STEPS[cur].id]+d);
+  else if(h.id==='tlA') setArr(ui.arr+d); else setWin(ui.arr,endM()+d);
+});
+
+function renderWork(){
+  const s=STEPS[cur], st=STOPS[s.stop];
+  $('#work').innerHTML=`
+  <div class="work-head"><div><div class="eyebrow" style="color:var(--${st.key})">${st.name} · ${s.kind==='flight'?'Flight':'Hotel'}</div><h3>${s.title}</h3></div>
+    ${s.route?`<span class="route">${s.route}</span>`:''}</div>
+  ${s.kind==='flight'?renderFlight(s):renderHotel(s)}
+  <div class="nav"><button class="btn" type="button" data-step="-1" ${cur===0?'disabled':''}>Back</button>
+    <button class="btn primary" type="button" data-step="1" ${!done(s.id)?'disabled':''}>${cur===5?'See summary':'Continue'}</button></div>`;
+  updateTl();
+  $('#mBack').disabled=cur===0;
+  $('#mNext').disabled=!done(s.id);
+  $('#mNext').textContent=cur===5&&done(s.id)?'See summary':(done(s.id)?'Continue':(s.kind==='flight'?'Pick a flight':'Pick a hotel'));
+}
+
+/* ---------- Google Form submission ---------- */
+const FORM_ID='1FAIpQLSeK3aODmAWKR3KZvHznNTbtU51EPivhwNpRRcu1ImPdOFoHSw';
+const F={name:'entry.324084563',email:'entry.2137788271',
+  s1date:'entry.135325717',s1fl:'entry.47286127',s1arr:'entry.231626013',s1hotel:'entry.2029860700',s1stay:'entry.509992694',
+  s2date:'entry.1525402298',s2fl:'entry.295413767',s2arr:'entry.340970907',s2hotel:'entry.488499644',s2stay:'entry.392149146',
+  s3date:'entry.1425782539',s3fl:'entry.222790222',s3arr:'entry.1157553041',s3hotel:'entry.477883694',s3stay:'entry.78844966',
+  full:'entry.796499981'};
+const longDay=d=>fmtDay(d)+', '+dt(d).getFullYear();
+const legsText=(p,from,to)=>{const o=toObj(p.row);
+  return o.via?`${o.f1} ${o.a1} ${from} ${o.dep} → ${o.via} ${o.arr1} · ${o.f2} ${o.a2} ${o.via} ${o.dep2} → ${to} ${o.arr}`
+              :`${o.f1} ${o.a1} ${from} ${o.dep} → ${to} ${o.arr}`;};
+function formParams(name,email){
+  const p={[F.name]:name,[F.email]:email}, full={};
+  [0,1,2].forEach(i=>{
+    const fs=STEPS[i*2], fp=plan[fs.id], ht=hotelText(i), k='s'+(i+1);
+    p[F[k+'date']]=longDay(fp.date); p[F[k+'fl']]=legsText(fp,fs.from,fs.to); p[F[k+'arr']]=toObj(fp.row).arr;
+    p[F[k+'hotel']]=ht.h.name;
+    p[F[k+'stay']]=ht.d.out?`${fmtDay(ht.d.in)} – ${longDay(ht.d.out)} (${nights(ht.d.in,ht.d.out)} nights)`:`From ${longDay(ht.d.in)} (check-out not set)`;
+    full[fs.id]={date:fp.date,row:fp.row}; full[STEPS[i*2+1].id]={id:plan[STEPS[i*2+1].id].id,name:ht.h.name};
+  });
+  p[F.full]=JSON.stringify(full);
+  return p;
+}
+const prefillURL=p=>`https://docs.google.com/forms/d/e/${FORM_ID}/viewform?usp=pp_url&`+new URLSearchParams(p).toString();
+const IN_CLAUDE=!!(window.claude&&typeof window.claude.use==='function');
+/* Submitting locks this tab (kept in sessionStorage, so a reload stays locked and a new tab starts fresh) */
+let locked=null;
+try{locked=JSON.parse(sessionStorage.getItem('ph27-lock')||'null');}catch(e){locked=null;}
+if(locked&&locked.plan) plan=locked.plan;
+function lockTab(){
+  locked={at:new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}),plan};
+  try{sessionStorage.setItem('ph27-lock',JSON.stringify(locked));}catch(e){}
+  if(!dbRef){try{localStorage.removeItem('ph27-plan');}catch(e){}} // start the next tab blank (device saving only)
+  render();
+}
+let sub={name:'',email:'',at:null};
+try{Object.assign(sub,JSON.parse(localStorage.getItem('ph27-sub')||'{}'));}catch(e){}
+const keepSub=()=>{try{localStorage.setItem('ph27-sub',JSON.stringify(sub));}catch(e){}};
+function updateSubmit(msg,cls){
+  const box=document.getElementById('submitBox'); if(!box)return;
+  const n=STEPS.filter(s=>done(s.id)).length, named=sub.name.trim().length>0, ready=n===6&&named;
+  const b=$('#subBtn'), a=$('#subLink'), h=$('#subHint');
+  b.disabled=!ready; b.hidden=IN_CLAUDE&&ready; a.hidden=!(IN_CLAUDE&&ready);
+  if(locked){
+    b.hidden=false;a.hidden=true;b.disabled=true;b.textContent='Submitted ✓';
+    $('#subName').disabled=true;$('#subEmail').disabled=true;
+    h.className='hint ok';h.textContent=`Submitted ${locked.at}. Open this page in a new tab to plan again.`;return;
+  }
+  if(ready&&IN_CLAUDE) a.href=prefillURL(formParams(sub.name.trim(),sub.email.trim()));
+  h.className='hint'+(cls?' '+cls:'');
+  h.textContent=msg||(n<6?`Choose all 6 to submit · ${n} of 6 chosen`:!named?'Add your name to submit'
+    :IN_CLAUDE?'Opens the form filled in. Press Submit there. This locks the page.':'Sends your plan to the trip spreadsheet. This locks the page.');
+}
+async function submitPlan(){
+  const b=$('#subBtn'); b.disabled=true; b.textContent='Sending…';
+  const body=new URLSearchParams(formParams(sub.name.trim(),sub.email.trim()));
+  try{
+    await fetch(`https://docs.google.com/forms/d/e/${FORM_ID}/formResponse`,{method:'POST',mode:'no-cors',body});
+    lockTab();
+  }catch(e){
+    b.textContent='Submit trip plan'; updateSubmit('Couldn’t send. Check your connection and try again.','err');
+  }
+}
+
+/* ---------- render: summary ---------- */
+function flightText(p){const o=toObj(p.row);
+  return o.via?`${fmtDay(p.date)} · ${o.f1} (${o.a1}) ${o.dep}→${o.arr1} ${o.via}, then ${o.f2} (${o.a2}) ${o.dep2}→${o.arr} · ${dur(o.total)}`
+             :`${fmtDay(p.date)} · ${o.f1} (${o.a1}) ${o.dep}→${o.arr} · nonstop ${dur(o.total)}`;}
+function hotelText(i){const s=STEPS[i*2+1],p=plan[s.id];if(!p)return null;const h=HOTELS[s.id].find(x=>x.id===p.id);const d=stayDates(i);
+  return {h,d};}
+function renderSum(){
+  const cards=STOPS.map((st,i)=>{
+    const fs=STEPS[i*2], fp=plan[fs.id], ht=hotelText(i);
+    let fHtml='<span class="todo">Not chosen yet</span>';
+    if(fp){const o=toObj(fp.row);fHtml=`<div class="val"><b>${fmtDay(fp.date)}</b> · ${o.dep} → ${o.arr}</div>
+      <div class="val mono">${o.via?`${o.f1} ${o.dep}–${o.arr1} ${o.via} · ${o.f2} ${o.dep2}–${o.arr}`:`${o.f1} ${o.dep}–${o.arr} nonstop`}</div>`;}
+    let hHtml='<span class="todo">Not chosen yet</span>';
+    if(ht){hHtml=`<div class="val"><b>${ht.h.name}</b></div><div class="val">${ht.d.in?fmtDay(ht.d.in):'?'} → ${ht.d.out?fmtDay(ht.d.out):'check-out not set'}${ht.d.in&&ht.d.out?` · ${nights(ht.d.in,ht.d.out)} nights`:''}</div>`;}
+    return `<div class="card" style="--c:var(--${st.key});--soft:var(--${st.key}-soft)">
+      <h3>${st.name}</h3>
+      <div class="row"><span class="lbl">Book your flight using</span>${fHtml}<button class="edit" type="button" data-go="${i*2}">${locked?'View':fp?'Change':'Choose'} flight</button></div>
+      <div class="row"><span class="lbl">Book your hotel using</span>${hHtml}<button class="edit" type="button" data-go="${i*2+1}">${locked?'View':ht?'Change':'Choose'} hotel</button></div>
+    </div>`;}).join('');
+  if(!document.getElementById('sumCards')){
+    $('#sum').innerHTML=`<div class="sum-head"><h2>Booking summary</h2><button class="copy" type="button" id="copyBtn">Copy</button></div>
+    <div class="cards" id="sumCards"></div>
+    <form class="submit" id="submitBox" novalidate>
+      <h3>Submit your plan</h3>
+      <label for="subName">Your name<input id="subName" autocomplete="name" placeholder="e.g. Reggie Quindoy"></label>
+      <label for="subEmail">Email (optional)<input id="subEmail" type="email" autocomplete="email" placeholder="you@example.com"></label>
+      <button class="btn primary" id="subBtn" type="submit" disabled>Submit trip plan</button>
+      <a class="btn primary" id="subLink" href="#" target="_blank" rel="noopener" hidden>Open form to submit</a>
+      <div class="hint" id="subHint" aria-live="polite"></div>
+    </form>`;
+    $('#subName').value=sub.name; $('#subEmail').value=sub.email;
+  }
+  $('#sumCards').innerHTML=cards;
+  updateSubmit();
+}
+function summaryText(){
+  return STOPS.map((st,i)=>{const fp=plan[STEPS[i*2].id],ht=hotelText(i);
+    return `${st.name}\n  Flight: ${fp?flightText(fp):'not chosen'}\n  Hotel: ${ht?`${ht.h.name}, ${ht.d.in?fmtDay(ht.d.in):'?'} to ${ht.d.out?fmtDay(ht.d.out):'?'}`:'not chosen'}`;}).join('\n\n');
+}
+
+function render(){
+  document.body.classList.toggle('locked',!!locked);
+  const lb=$('#lockbar'); lb.hidden=!locked;
+  if(locked) lb.innerHTML=`<b>Plan submitted ${locked.at}.</b><span>To plan again, open this page in a new tab.</span>`;
+  renderNav();renderWork();renderSum();}
+function go(i){if(i>5){document.getElementById('sum').scrollIntoView({behavior:'smooth',block:'start'});return;}
+  cur=Math.max(0,Math.min(5,i));remember();render();
+  if(window.matchMedia('(max-width:760px)').matches) window.scrollTo({top:0,behavior:'smooth'});}
+
+/* ---------- events (delegated) ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.go!==undefined) return go(+t.dataset.go);
+  if(t.dataset.step) return go(cur+ +t.dataset.step);
+  if(t.id==='mBack') return go(cur-1);
+  if(t.id==='mNext') return go(cur+1);
+  if(t.dataset.day){ui.day[STEPS[cur].id]=t.dataset.day;return renderWork();}
+  if(t.dataset.more){ui.shown[t.dataset.more]=(ui.shown[t.dataset.more]||20)+20;return renderWork();}
+  if(t.dataset.pick){const s=STEPS[cur],[d]=t.dataset.pick.split('|');const row=DATA[s.id][d].find(r=>rowKey(d,r)===t.dataset.pick);
+    return choose(s.id,{date:d,row});}
+  if(t.dataset.hotel){return choose(STEPS[cur].id,{id:t.dataset.hotel});}
+  if(t.id==='subLink'&&!locked){setTimeout(lockTab,0);return;}
+  if(t.id==='copyBtn'){const txt=summaryText();
+    const ok=()=>{t.textContent='Copied';setTimeout(()=>t.textContent='Copy',1500);};
+    (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(ok).catch(()=>{
+      const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');ok();}catch(_){t.textContent='Select and copy';}ta.remove();});}
+});
+document.addEventListener('input',e=>{
+});
+document.addEventListener('input',e=>{
+  if(e.target.id==='subName'||e.target.id==='subEmail'){sub.name=$('#subName').value;sub.email=$('#subEmail').value;keepSub();updateSubmit();}
+});
+document.addEventListener('submit',e=>{if(e.target.id==='submitBox'){e.preventDefault();if(!$('#subBtn').disabled&&!IN_CLAUDE)submitPlan();}});
+document.addEventListener('change',e=>{if(e.target.id==='sortS'){ui.sort[STEPS[cur].id]=e.target.value;renderWork();}});
+let rq=0;function refreshList(){cancelAnimationFrame(rq);rq=requestAnimationFrame(()=>{
+  const b=document.getElementById('fbody'), s=STEPS[cur];
+  if(b&&s.kind==='flight') b.innerHTML=renderFlightBody(s); else renderWork();});}
+
+render();
+
+/* ---------- shared saving ---------- */
+(async()=>{
+  let db=null;
+  try{ db=window.claude&&window.claude.use?await window.claude.use('db'):null; }catch(e){db=null;}
+  if(!db){ // hosted elsewhere (or signed out): keep each visitor's picks in their own browser
+    if(locked){setSave('saved','Submitted');return;}
+    try{const p=JSON.parse(localStorage.getItem('ph27-plan')||'null');if(p&&typeof p==='object'){plan=p;render();}
+      setSave('saved','Saved on this device');}catch(e){setSave('local','Not saved · this browser blocks storage');}
+    return;}
+  dbRef=db.doc('plans/main');
+  canWrite=true;
+  try{const u=window.claude.use?await window.claude.use('user'):null;
+    if(u&&u.can){const w=await u.can('data.write');if(w===false)canWrite=false;}}catch(e){}
+  setSave('saved',canWrite?'Saved · shared with everyone on this link':'View only');
+  dbRef.onSnapshot(snap=>{
+    if(locked)return;
+    if(snap.metadata&&snap.metadata.hasPendingWrites)return;
+    const d=snap.exists?snap.data():{};const next={};
+    ['f1','h1','f2','h2','f3','h3'].forEach(k=>{if(d&&d[k])next[k]=d[k];});
+    if(JSON.stringify(next)!==JSON.stringify(plan)){plan=next;render();}
+    if(!canWrite)setSave('local','View only · you can look but not change picks');
+  },err=>{setSave('local','Saving unavailable right now');});
+})();
+</script>
+</body></html>
