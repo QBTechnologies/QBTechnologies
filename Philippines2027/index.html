@@ -271,7 +271,7 @@ const STEPS=[
 /* Sample hotels — placeholders until the real list arrives */
 const AIRPORT={h1:{code:'IAO',lat:9.85889,lng:126.01389},h2:{code:'ENI',lat:11.20194,lng:119.41694}};
 const kmTo=(a,b)=>{const R=6371,r=Math.PI/180,dl=(b.lat-a.lat)*r,dg=(b.lng-a.lng)*r;const x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(x));};
-const mapsURL=h=>`https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lng}`;
+const mapsURL=h=>`https://www.google.com/maps/d/viewer?mid=1tGh-Jcp9MF0EvxJlfWxTkwg3mkW7aHA&ll=${h.lat},${h.lng}&z=17`; // Reggie's “Philippines 2027” My Maps, centred on the pin
 const HOTELS={
   /* From Reggie's "Philippines 2027" Google My Maps export (names + pin locations) */
   h1:[
@@ -444,7 +444,7 @@ function renderHotel(s){
      <span><span class="name">${h.name}</span>${h.area?`<span class="area">${h.area}</span>`:''}${h.note?`<span class="legs"><span>${h.note}</span></span>`:''}</span>
      <span class="total">${h.lat?`<span class="price">${kmTo(h,ap).toFixed(1)} km</span><small>to ${ap.code}</small>`:`<span class="price">${peso(h.price)}</span><small>per night (sample)</small>`}</span>
    </button>
-   ${h.lat?`<a class="maplink" href="${mapsURL(h)}" target="_blank" rel="noopener">Open in Google Maps ↗</a>`:''}
+   ${h.lat?`<a class="maplink" href="${mapsURL(h)}" target="_blank" rel="noopener">Open in My Maps ↗</a>`:''}
   </div>`).join('')}
   </div>`;
 }
